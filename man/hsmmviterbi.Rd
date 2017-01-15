@@ -52,8 +52,8 @@ the decoded series of latent states
 Viterbi algorithm to decode the latent states for hidden semi-Markov models
 }
 \examples{
+\dontrun{
 #3 zero-inflated poissons
-
 prior_init <- c(0.3,0.3,0.4)
 dt_init <- c(10,8,6)
 emit_init <- c(10,50,100)
@@ -66,13 +66,13 @@ y <- result$series
 state <- result$state
 fit <- hsmmfit(y=y,ntimes=NULL,M=3,trunc=trunc,prior_init=prior_init,dt_dist="shiftpoisson",
      dt_init=dt_init,tpm_init=omega,emit_init=emit_init,zero_init=zeroprop,
-     method="BFGS",hessian=FALSE,control=list(maxit=500,trace=1))
+     method="Nelder-Mead",hessian=FALSE,control=list(maxit=500,trace=1))
 decode <- hsmmviterbi(y=y,ntimes=NULL,M=3,trunc=trunc,prior=fit$prior,dt_dist="shiftpoisson",
      dt_parm=fit$dt_parm,tpm_parm=fit$tpm,emit_parm=fit$emit_parm,
      zero_init=fit$zeroprop,plot=TRUE,xlim=c(0,1000),ylim=c(0,200))
 #check the missclassification rate
 sum(decode!=state)/length(state)
-     
+}   
      
 }
 \references{

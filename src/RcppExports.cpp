@@ -221,31 +221,6 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
-// hmm_mixed_negloglik
-double hmm_mixed_negloglik(arma::vec allparm, int M, arma::vec ally, arma::vec ntimes, int ncolcovpi, arma::mat allcovpi, int ncolcovtrans, arma::mat allcovtrans, int ncolcovp1, arma::mat allcovp1, int ncolcovpois, arma::mat allcovpois, int nrand, int B, arma::vec zeroindex);
-RcppExport SEXP ziphsmm_hmm_mixed_negloglik(SEXP allparmSEXP, SEXP MSEXP, SEXP allySEXP, SEXP ntimesSEXP, SEXP ncolcovpiSEXP, SEXP allcovpiSEXP, SEXP ncolcovtransSEXP, SEXP allcovtransSEXP, SEXP ncolcovp1SEXP, SEXP allcovp1SEXP, SEXP ncolcovpoisSEXP, SEXP allcovpoisSEXP, SEXP nrandSEXP, SEXP BSEXP, SEXP zeroindexSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< arma::vec >::type allparm(allparmSEXP);
-    Rcpp::traits::input_parameter< int >::type M(MSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type ally(allySEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type ntimes(ntimesSEXP);
-    Rcpp::traits::input_parameter< int >::type ncolcovpi(ncolcovpiSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type allcovpi(allcovpiSEXP);
-    Rcpp::traits::input_parameter< int >::type ncolcovtrans(ncolcovtransSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type allcovtrans(allcovtransSEXP);
-    Rcpp::traits::input_parameter< int >::type ncolcovp1(ncolcovp1SEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type allcovp1(allcovp1SEXP);
-    Rcpp::traits::input_parameter< int >::type ncolcovpois(ncolcovpoisSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type allcovpois(allcovpoisSEXP);
-    Rcpp::traits::input_parameter< int >::type nrand(nrandSEXP);
-    Rcpp::traits::input_parameter< int >::type B(BSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type zeroindex(zeroindexSEXP);
-    __result = Rcpp::wrap(hmm_mixed_negloglik(allparm, M, ally, ntimes, ncolcovpi, allcovpi, ncolcovtrans, allcovtrans, ncolcovp1, allcovp1, ncolcovpois, allcovpois, nrand, B, zeroindex));
-    return __result;
-END_RCPP
-}
 // hsmm_nllk
 arma::vec hsmm_nllk(arma::vec parm, int M, arma::vec trunc, arma::vec y, std::string dt_dist, arma::vec zeroindex);
 RcppExport SEXP ziphsmm_hsmm_nllk(SEXP parmSEXP, SEXP MSEXP, SEXP truncSEXP, SEXP ySEXP, SEXP dt_distSEXP, SEXP zeroindexSEXP) {

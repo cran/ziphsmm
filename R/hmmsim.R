@@ -11,7 +11,7 @@
 #' @param zeroprop a vector containing structural zero proportions in each state
 #' @return a matrix with 1st column of simulated series and 
 #' 2nd column of corresponding states
-#' #' @references Walter Zucchini, Iain L. MacDonald, Roland Langrock. Hidden Markov Models for 
+#' @references Walter Zucchini, Iain L. MacDonald, Roland Langrock. Hidden Markov Models for 
 #' Time Series: An Introduction Using R, Second Edition. Chapman & Hall/CRC
 #' @examples
 #' prior_init <- c(0.5,0.2,0.3)

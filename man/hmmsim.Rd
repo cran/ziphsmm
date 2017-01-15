@@ -23,8 +23,6 @@ hmmsim(n, M, prior, tpm_parm, emit_parm, zeroprop)
 \value{
 a matrix with 1st column of simulated series and 
 2nd column of corresponding states
-#' @references Walter Zucchini, Iain L. MacDonald, Roland Langrock. Hidden Markov Models for 
-Time Series: An Introduction Using R, Second Edition. Chapman & Hall/CRC
 }
 \description{
 Simulate a hidden Markov series and its underlying states
@@ -39,5 +37,9 @@ result <- hmmsim(n=1000,M=3,prior=prior_init, tpm_parm=omega,
          emit_parm=emit_init,zeroprop=zeroprop)
 str(result)
 
+}
+\references{
+Walter Zucchini, Iain L. MacDonald, Roland Langrock. Hidden Markov Models for 
+Time Series: An Introduction Using R, Second Edition. Chapman & Hall/CRC
 }
 

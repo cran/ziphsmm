@@ -744,20 +744,18 @@ double hmm_common_negloglik(arma::vec allparm, int M, arma::vec ally, arma::vec 
 }
 
 
-//////////////////////////////////////////////////////////////////////////////////
-
-// [[Rcpp::export]]
+/*
 double hmm_mixed_negloglik(arma::vec allparm, int M, arma::vec ally, arma::vec ntimes,
                            int ncolcovpi, arma::mat allcovpi,
                            int ncolcovtrans, arma::mat allcovtrans, int ncolcovp1, arma::mat allcovp1,
-                           int ncolcovpois, arma::mat allcovpois, int nrand, int B,
+                           int ncolcovpois, arma::mat allcovpois, int nrand, double B,
                            arma::vec zeroindex){
     
     //wrapper function of the zip_negloglik
     //last items in allparm are sd's for random effects with mean 0
     
-    double negloglik,tempsum,factor,first;
-    long i,j,b,cumtimes;
+    double b,negloglik,tempsum,factor,first;
+    long i,j,cumtimes;
     long timeindex = ntimes.n_rows;
     arma::vec sd(nrand);
     //the dimension of parm has to be modified (AT LEAST M*M+M when no covariates)
@@ -806,7 +804,7 @@ double hmm_mixed_negloglik(arma::vec allparm, int M, arma::vec ally, arma::vec n
         }
         
         
-        negloglik = negloglik + log(B) + first - log(tempsum);
+        negloglik += log(B) + first - log(tempsum);
         
         cumtimes += ntimes[i];
         //Rcpp::Rcout<<i<<std::endl;
@@ -815,7 +813,7 @@ double hmm_mixed_negloglik(arma::vec allparm, int M, arma::vec ally, arma::vec n
     return negloglik;
     
 }
-
+*/
 
 
 //////////////////////////////////////////////////////////////////////////////////

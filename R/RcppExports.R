@@ -70,10 +70,6 @@ hmm_common_negloglik <- function(allparm, M, ally, ntimes, ncolcovpi, allcovpi, 
     .Call('ziphsmm_hmm_common_negloglik', PACKAGE = 'ziphsmm', allparm, M, ally, ntimes, ncolcovpi, allcovpi, ncolcovtrans, allcovtrans, ncolcovp1, allcovp1, ncolcovpois, allcovpois, zeroindex)
 }
 
-hmm_mixed_negloglik <- function(allparm, M, ally, ntimes, ncolcovpi, allcovpi, ncolcovtrans, allcovtrans, ncolcovp1, allcovp1, ncolcovpois, allcovpois, nrand, B, zeroindex) {
-    .Call('ziphsmm_hmm_mixed_negloglik', PACKAGE = 'ziphsmm', allparm, M, ally, ntimes, ncolcovpi, allcovpi, ncolcovtrans, allcovtrans, ncolcovp1, allcovp1, ncolcovpois, allcovpois, nrand, B, zeroindex)
-}
-
 hsmm_nllk <- function(parm, M, trunc, y, dt_dist, zeroindex) {
     .Call('ziphsmm_hsmm_nllk', PACKAGE = 'ziphsmm', parm, M, trunc, y, dt_dist, zeroindex)
 }
