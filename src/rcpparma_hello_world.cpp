@@ -155,7 +155,7 @@ arma::vec rlogp(int n, double p){
             cumsum += dlogp(j,p, FALSE);
             j++;
         }
-        result(i) = j;
+        result(i) = j-1;
     }
     
     return result;
@@ -317,6 +317,195 @@ arma::mat hmm_gen (int dim, int M, int ntimes, arma::vec pi, arma::mat a, arma::
 }
 
 
+///////////////////////////////////////////
+//[[Rcpp::export]]
+arma::mat hmm_cov_gen (arma::vec parm, int M, long dim, int ncolcovpi, arma::mat covpi,
+                       int ncolcovtrans, arma::mat covtrans, int ncolcovp1, arma::mat covp1,
+                       int ncolcovpois, arma::mat covpois, arma::vec zeroindex){
+    
+    int i,j,m,n,nextindex,prev,curr;
+    double tempsum, u;
+    arma::vec label(M);
+    
+    arma::mat result(dim, 2); /*first column for x, second column for state*/
+    
+    
+    arma::vec pi(M);
+    arma::mat a(M,M);
+    arma::vec theta(M);
+    arma::vec zeroprop(M);
+
+    //retrieve the full parameters
+    //prior
+    nextindex=0;
+    pi(0) = 1;
+    tempsum = 1;
+    for(m=1; m<M; m++){
+        pi(m) = parm(nextindex);
+        
+        for(j=0;j<ncolcovpi;j++)
+            pi(m) += parm(nextindex+j+1)*covpi(0,j) ;
+        
+        pi(m) = exp(pi(m));
+        
+        tempsum += pi(m);
+        nextindex = nextindex + ncolcovpi + 1;
+    }
+    
+    for(m=0; m<M; m++) pi(m) = pi(m) / tempsum;
+    
+    
+    //transition
+    for(i=0; i<M; i++){
+        
+        for(j=0; j<M; j++){
+            if(j==0) {
+                a(i,j) = 1;
+                tempsum = 1;
+            }
+            else {
+                a(i,j) = parm(nextindex);
+                
+                for(m=0;m<ncolcovtrans;m++)
+                    a(i,j) += parm(nextindex+m+1)*covtrans(0,m);
+                
+                a(i,j) = exp(a(i,j));
+                tempsum += a(i,j);
+                nextindex = nextindex + ncolcovtrans + 1;
+            }
+            //Rcpp::Rcout<<a(i,j)<<std::endl;
+        }
+        
+        for(n=0;n<M; n++) a(i,n) = a(i,n) / tempsum;
+        
+    }
+    
+    
+    for(i=0;i<M;i++){
+        if(zeroindex(i)==0) zeroprop(i)=0;
+        else{
+            zeroprop(i) = parm(nextindex);
+            
+            for(m=0;m<ncolcovp1;m++)
+                zeroprop(i) += parm(nextindex+m+1) * covp1(0,m);
+            
+            zeroprop(i) = exp(zeroprop(i))/(1+exp(zeroprop(i)));
+            nextindex = nextindex + ncolcovp1 + 1;
+        }
+    }
+    
+    //Rcpp::Rcout << "p1=" << p1 << std::endl;
+    
+    for(m=0; m<M; m++){
+        theta(m) = parm(nextindex);
+        for(j=0; j<ncolcovpois;j++){
+            theta(m) += parm(nextindex+j+1) * covpois(0,j);
+        }
+        theta(m) = exp(theta(m));
+        nextindex = nextindex + ncolcovpois + 1;
+    }
+    
+    
+    //start generation
+    
+    for(m=0;m<M;m++) label(m) = m+1;
+  
+    result(0,1) = multinomrand(1, M, pi, label)(0);
+    curr = result(0,1) - 1;
+    u = Rcpp::runif(1,0,1)(0);
+    if(u<=zeroprop(curr)) result(0,0) = 0;
+    else result(0,0) = Rcpp::rpois(1, theta(curr))(0);
+    
+    
+    
+    //iteration steps
+    for(n=1; n<dim; n++){
+        
+        //still need to retrieve the natural parameters
+        nextindex=0;
+        pi(0) = 1;
+        tempsum = 1;
+        for(m=1; m<M; m++){
+            pi(m) = parm(nextindex);
+            
+            for(j=0;j<ncolcovpi;j++)
+                pi(m) += parm(nextindex+j+1)*covpi(n,j) ;
+            
+            pi(m) = exp(pi(m));
+            
+            tempsum += pi(m);
+            nextindex = nextindex + ncolcovpi + 1;
+        }
+        
+        for(m=0; m<M; m++) pi(m) = pi(m) / tempsum;
+        
+        
+        //transition
+        for(i=0; i<M; i++){
+            
+            for(j=0; j<M; j++){
+                if(j==0) {
+                    a(i,j) = 1;
+                    tempsum = 1;
+                }
+                else {
+                    a(i,j) = parm(nextindex);
+                    
+                    for(m=0;m<ncolcovtrans;m++)
+                        a(i,j) += parm(nextindex+m+1)*covtrans(n,m);
+                    
+                    a(i,j) = exp(a(i,j));
+                    tempsum += a(i,j);
+                    nextindex = nextindex + ncolcovtrans + 1;
+                }
+                //Rcpp::Rcout<<a(i,j)<<std::endl;
+            }
+            
+            for(m=0;m<M; m++) a(i,m) = a(i,m) / tempsum;
+            
+        }
+        
+        
+        for(i=0;i<M;i++){
+            if(zeroindex(i)==0) zeroprop(i)=0;
+            else{
+                zeroprop(i) = parm(nextindex);
+                
+                for(m=0;m<ncolcovp1;m++)
+                    zeroprop(i) += parm(nextindex+m+1) * covp1(n,m);
+                
+                zeroprop(i) = exp(zeroprop(i))/(1+exp(zeroprop(i)));
+                nextindex = nextindex + ncolcovp1 + 1;
+            }
+        }
+        //Rcpp::Rcout << "p1=" << p1 << std::endl;
+        
+        for(m=0; m<M; m++){
+            theta(m) = parm(nextindex);
+            for(j=0; j<ncolcovpois;j++){
+                theta(m) += parm(nextindex+j+1) * covpois(n,j);
+            }
+            theta(m) = exp(theta(m));
+            nextindex = nextindex + ncolcovpois + 1;
+        }
+
+        
+            prev = result(n-1, 1) - 1;
+            result(n,1) = multinomrand(1, M, a.row(prev).t(), label)(0);  //row to column vetor
+            
+            curr = result(n,1) - 1;
+            u = Rcpp::runif(1,0,1)(0);
+            if(u<=zeroprop(curr)) result(n,0) = 0;
+            else result(n,0) = Rcpp::rpois(1, theta(curr))(0);
+            
+        
+    }
+  
+    return result;
+    
+}
+
+
 /////////////
 
 //[[Rcpp::export]]
@@ -366,7 +555,7 @@ arma::mat hsmm_gen(int dim, int M, arma::vec pi, arma::vec theta, arma::vec zero
           count = rshiftpois(1, p(curr-1), 1)(0);
         }
             
-             for(j=0;j<count & n+j<dim; j++) {
+             for(j=0;j<count and n+j<dim; j++) {
                  result(n+j,1) = curr;
                  u = Rcpp::runif(1,0,1)(0);
                  if(u<=zeroprop(curr-1)) result(n+j,0)=0;
@@ -376,6 +565,483 @@ arma::mat hsmm_gen(int dim, int M, arma::vec pi, arma::vec theta, arma::vec zero
         n += count;
     }
     
+    return(result);
+    
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////
+// [[Rcpp::export]]
+arma::mat hsmm_cov_gen(arma::vec parm, int M, long dim, std::string dt_dist, arma::vec zeroindex,
+                       int ncolcovp, arma::mat covp, int ncolcovpi, arma::mat covpi,
+                       int ncolcovomega, arma::mat covomega, int ncolcovp1, arma::mat covp1,
+                       int ncolcovpois, arma::mat covpois){
+    
+        /*parm = logitp from logarithm dist---M, logit(pi)---M-1, logit(p1), log(theta)---M,
+         omega---M*(M-2): (1,3)...(1,n)(2,3)...(2,n)(3,2)(3,4)...(3,n).......*/
+        
+        //intercept column is not included in the covariates, but should be in the parm
+        
+        //parameters are given alternatively in the order of beta0 and beta1
+    
+        int i,j,k,m,nextindex,prev,curr;
+        long count,n;
+        double tempsum,u;
+        arma::vec label(M);
+    
+        arma::mat result(dim, 2); /*first column for x, second column for state*/
+    
+    
+        arma::vec p(M);  //dt_parm
+        arma::vec pi(M);
+        arma::vec theta(M);
+        arma::vec zeroprop(M);
+
+        
+        arma::mat omega(M,M);
+        //arma::mat a(totalmv,totalmv);
+    
+        //////
+    //retrieve some of the parameters
+    nextindex = 0;
+    //dwell time
+    
+    //check dt_dist
+    if(dt_dist=="log"){
+        for(i=0;i<M;i++){
+                p(i) = parm(nextindex);
+                for(m=0;m<ncolcovp;m++)
+                    p(i) += parm(nextindex+m+1)*covp(0,m);
+                p(i) = exp(p(i)) / (1+exp(p(i)));
+                
+            nextindex = nextindex + ncolcovp + 1;
+        }
+    }else{
+        for(i=0;i<M;i++){
+        
+                p(i) = parm(nextindex);
+                for(m=0;m<ncolcovp;m++)
+                    p(i) += parm(nextindex+m+1)*covp(0,m);
+                p(i) = exp(p(i)) ;
+            
+                
+            }
+            nextindex = nextindex + ncolcovp + 1;
+        }
+    
+    
+    
+    //recover pi
+    pi(0) = 1;
+    tempsum = 1;
+    for(m=1; m<M; m++){
+        pi(m) = parm(nextindex);
+        
+        for(j=0;j<ncolcovpi;j++)
+            pi(m) += parm(nextindex+j+1)*covpi(0,j) ;
+        
+        pi(m) = exp(pi(m));
+        
+        tempsum += pi(m);
+        nextindex = nextindex + ncolcovpi + 1;
+    }
+    
+    for(m=0; m<M; m++) pi(m) = pi(m) / tempsum;
+    
+
+    
+    //////////////////
+    //start generation
+    for(m=0;m<M;m++) label(m) = m+1;
+    
+    
+    //starting generation
+    curr = multinomrand(1, M, pi, label)(0);
+    
+    //check dt_dist
+    if(dt_dist=="log"){
+        count = rlogp(1,p(curr-1))(0);
+    }else{
+        count = rshiftpois(1, p(curr-1), 1)(0);
+    }
+    
+    /////////////////
+    for(k=0;k<count;k++) {
+        
+        //get some of the parameters in each iteration
+        nextindex = 0;
+        //dwell time
+       
+        //check dt_dist
+        if(dt_dist=="log"){
+            for(i=0;i<M;i++){
+                
+                    p(i) = parm(nextindex);
+                    for(m=0;m<ncolcovp;m++)
+                        p(i) += parm(nextindex+m+1)*covp(k,m);
+                    p(i) = exp(p(i)) / (1+exp(p(i)));
+                    
+                nextindex = nextindex + ncolcovp + 1;
+            }
+        }else{
+            for(i=0;i<M;i++){
+                
+                
+                    p(i) = parm(nextindex);
+                    for(m=0;m<ncolcovp;m++)
+                        p(i) += parm(nextindex+m+1)*covp(k,m);
+                    p(i) = exp(p(i)) ;
+                   
+                nextindex = nextindex + ncolcovp + 1;
+            }
+            
+        }
+        
+        //recover newtheta,p1, newpi
+        pi(0) = 1;
+        tempsum = 1;
+        for(m=1; m<M; m++){
+            pi(m) = parm(nextindex);
+            
+            for(j=0;j<ncolcovpi;j++)
+                pi(m) += parm(nextindex+j+1)*covpi(k,j) ;
+            
+            pi(m) = exp(pi(m));
+            
+            tempsum += pi(m);
+            nextindex = nextindex + ncolcovpi + 1;
+        }
+        
+        for(m=0; m<M; m++) pi(m) = pi(m) / tempsum;
+        
+        //zeroprops
+        
+        for(i=0;i<M;i++){
+            if(zeroindex(i)==0) zeroprop(i)=0;
+            else{
+                zeroprop(i) = parm(nextindex);
+                
+                for(m=0;m<ncolcovp1;m++)
+                    zeroprop(i) += parm(nextindex+m+1) * covp1(k,m);
+                
+                zeroprop(i) = exp(zeroprop(i))/(1+exp(zeroprop(i)));
+                nextindex = nextindex + ncolcovp1 + 1;
+            }
+        }
+        
+        
+        //theta
+        for(m=0; m<M; m++){
+            theta(m) = parm(nextindex);
+            for(j=0; j<ncolcovpois;j++){
+                theta(m) += parm(nextindex+j+1) * covpois(k,j);
+            }
+            theta(m) = exp(theta(m));
+            nextindex = nextindex + ncolcovpois + 1;
+        }
+        
+        
+        //recover omega:
+        //if M=2 then assign off-diagonal with 1; else
+        //1.fill columns 3 ~ M (rectangles); 2. shift the lower triangle to the left; 3.reassigne diagonal=0;
+        
+        omega.zeros();
+        if(M==2) {omega(0,1)=1; omega(1,0)=1;}
+        else{
+            for(i=0;i<M;i++){
+                tempsum = 1;
+                for(j=2;j<M;j++){
+                    omega(i,j) = parm(nextindex); //new
+                    for(m=0;m<ncolcovomega;m++)
+                        omega(i,j) += parm(nextindex+m+1)*covomega(k,m);
+                    //omega(i,j) = exp(omega(i,j))/(1+exp(omega(i,j)));
+                    omega(i,j) = exp(omega(i,j)); //new
+                    tempsum += omega(i,j); //new
+                    nextindex = nextindex + ncolcovomega + 1;
+                }
+                
+                for(j=2; j<M; j++) omega(i,j) = omega(i,j) / tempsum; //new
+                if(i==0) omega(i,1) = 1 / tempsum;
+                else omega(i,0) = 1 / tempsum;
+                //tempsum = 1 - arma::sum(omega.row(i)); //prevent negative values
+                //if(i==0) omega(i,1) = MAX(0,tempsum);
+                //else omega(i,0) = MAX(0,tempsum);
+            }
+            
+            for(i=2;i<M;i++){
+                for(j=2;j<=i;j++){
+                    omega(i,j-1) = omega(i,j);
+                    if(i==j) omega(i,j)=0;
+                }
+            }
+            
+            
+        }//end section for zeroinflated poisson distribution
+        
+        
+    
+        result(k,1) = curr;
+        u = Rcpp::runif(1,0,1)(0);
+        if(u<=zeroprop(curr-1)) result(k,0)=0;
+        else result(k,0) = Rcpp::rpois(1, theta(curr-1))(0);
+    }
+    
+    n = count;
+    
+
+    //////////////////////////////////////////////////////
+    //iteration
+    while(n<dim){
+        
+        //retrieve the parameters
+        nextindex = 0;
+        //dwell time
+      
+        //check dt_dist
+        if(dt_dist=="log"){
+            for(i=0;i<M;i++){
+                
+                    p(i) = parm(nextindex);
+                    for(m=0;m<ncolcovp;m++)
+                        p(i) += parm(nextindex+m+1)*covp(n,m);
+                    p(i) = exp(p(i)) / (1+exp(p(i)));
+                   
+                nextindex = nextindex + ncolcovp + 1;
+            }
+        }else{
+            for(i=0;i<M;i++){
+                
+                    p(i) = parm(nextindex);
+                    for(m=0;m<ncolcovp;m++)
+                        p(i) += parm(nextindex+m+1)*covp(n,m);
+                    p(i) = exp(p(i)) ;
+                   
+                nextindex = nextindex + ncolcovp + 1;
+            }
+            
+        }
+        
+        //recover newtheta,p1, newpi
+        pi(0) = 1;
+        tempsum = 1;
+        for(m=1; m<M; m++){
+            pi(m) = parm(nextindex);
+            
+            for(j=0;j<ncolcovpi;j++)
+                pi(m) += parm(nextindex+j+1)*covpi(n,j) ;
+            
+            pi(m) = exp(pi(m));
+            
+            tempsum += pi(m);
+            nextindex = nextindex + ncolcovpi + 1;
+        }
+        
+        for(m=0; m<M; m++) pi(m) = pi(m) / tempsum;
+        
+        //zeroprops
+        
+        for(i=0;i<M;i++){
+            if(zeroindex(i)==0) zeroprop(i)=0;
+            else{
+                zeroprop(i) = parm(nextindex);
+                
+                for(m=0;m<ncolcovp1;m++)
+                    zeroprop(i) += parm(nextindex+m+1) * covp1(n,m);
+                
+                zeroprop(i) = exp(zeroprop(i))/(1+exp(zeroprop(i)));
+                nextindex = nextindex + ncolcovp1 + 1;
+            }
+        }
+        
+        
+        
+        //theta
+        for(m=0; m<M; m++){
+            theta(m) = parm(nextindex);
+            for(j=0; j<ncolcovpois;j++){
+                theta(m) += parm(nextindex+j+1) * covpois(n,j);
+            }
+            theta(m) = exp(theta(m));
+            nextindex = nextindex + ncolcovpois + 1;
+        }
+        
+        //then recover omega for this iteration:
+        //if M=2 then assign off-diagonal with 1; else
+        //1.fill columns 3 ~ M (rectangles); 2. shift the lower triangle to the left; 3.reassigne diagonal=0;
+        
+        omega.zeros();
+        if(M==2) {omega(0,1)=1; omega(1,0)=1;}
+        else{
+            for(i=0;i<M;i++){
+                tempsum = 1;
+                for(j=2;j<M;j++){
+                    omega(i,j) = parm(nextindex); //new
+                    for(m=0;m<ncolcovomega;m++)
+                        omega(i,j) += parm(nextindex+m+1)*covomega(n,m);
+                    //omega(i,j) = exp(omega(i,j))/(1+exp(omega(i,j)));
+                    omega(i,j) = exp(omega(i,j)); //new
+                    tempsum += omega(i,j); //new
+                    nextindex = nextindex + ncolcovomega + 1;
+                }
+                
+                for(j=2; j<M; j++) omega(i,j) = omega(i,j) / tempsum; //new
+                if(i==0) omega(i,1) = 1 / tempsum;
+                else omega(i,0) = 1 / tempsum;
+                //tempsum = 1 - arma::sum(omega.row(i)); //prevent negative values
+                //if(i==0) omega(i,1) = MAX(0,tempsum);
+                //else omega(i,0) = MAX(0,tempsum);
+            }
+            
+            for(i=2;i<M;i++){
+                for(j=2;j<=i;j++){
+                    omega(i,j-1) = omega(i,j);
+                    if(i==j) omega(i,j)=0;
+                }
+            }
+            
+            
+            
+        }//end section for zeroinflated poisson distribution
+        
+        prev = result(n-1,1) - 1;
+        //sample from the previous omega
+        curr = multinomrand(1, M, omega.row(prev).t(), label)(0);
+        
+        //check dt_dist
+        if(dt_dist=="log"){
+            count = rlogp(1, p(curr-1))(0);
+        }else{
+            count = rshiftpois(1, p(curr-1), 1)(0);
+        }
+        
+        
+       
+        
+
+        
+        
+        ////////////////
+        for(k=0;k<count and n+k<dim; k++) {
+            
+            
+            //get some of the parameters in each iteration
+            nextindex = 0;
+            //dwell time
+            
+            //check dt_dist
+            if(dt_dist=="log"){
+                for(i=0;i<M;i++){
+                  
+                        p(i) = parm(nextindex);
+                        for(m=0;m<ncolcovp;m++)
+                            p(i) += parm(nextindex+m+1)*covp(k,m);
+                        p(i) = exp(p(i)) / (1+exp(p(i)));
+                       
+                    nextindex = nextindex + ncolcovp + 1;
+                }
+            }else{
+                for(i=0;i<M;i++){
+                    
+                    p(i) = parm(nextindex);
+                        for(m=0;m<ncolcovp;m++)
+                            p(i) += parm(nextindex+m+1)*covp(k,m);
+                        p(i) = exp(p(i)) ;
+                        
+                    nextindex = nextindex + ncolcovp + 1;
+                }
+                
+            }
+            
+            //recover newtheta,p1, newpi
+            pi(0) = 1;
+            tempsum = 1;
+            for(m=1; m<M; m++){
+                pi(m) = parm(nextindex);
+                
+                for(j=0;j<ncolcovpi;j++)
+                    pi(m) += parm(nextindex+j+1)*covpi(k,j) ;
+                
+                pi(m) = exp(pi(m));
+                
+                tempsum += pi(m);
+                nextindex = nextindex + ncolcovpi + 1;
+            }
+            
+            for(m=0; m<M; m++) pi(m) = pi(m) / tempsum;
+            
+            //zeroprops
+            
+            for(i=0;i<M;i++){
+                if(zeroindex(i)==0) zeroprop(i)=0;
+                else{
+                    zeroprop(i) = parm(nextindex);
+                    
+                    for(m=0;m<ncolcovp1;m++)
+                        zeroprop(i) += parm(nextindex+m+1) * covp1(k,m);
+                    
+                    zeroprop(i) = exp(zeroprop(i))/(1+exp(zeroprop(i)));
+                    nextindex = nextindex + ncolcovp1 + 1;
+                }
+            }
+            
+            
+            //theta
+            for(m=0; m<M; m++){
+                theta(m) = parm(nextindex);
+                for(j=0; j<ncolcovpois;j++){
+                    theta(m) += parm(nextindex+j+1) * covpois(k,j);
+                }
+                theta(m) = exp(theta(m));
+                nextindex = nextindex + ncolcovpois + 1;
+            }
+            
+            
+            //recover omega:
+            //if M=2 then assign off-diagonal with 1; else
+            //1.fill columns 3 ~ M (rectangles); 2. shift the lower triangle to the left; 3.reassigne diagonal=0;
+            
+            omega.zeros();
+            if(M==2) {omega(0,1)=1; omega(1,0)=1;}
+            else{
+                for(i=0;i<M;i++){
+                    tempsum = 1;
+                    for(j=2;j<M;j++){
+                        omega(i,j) = parm(nextindex); //new
+                        for(m=0;m<ncolcovomega;m++)
+                            omega(i,j) += parm(nextindex+m+1)*covomega(k,m);
+                        //omega(i,j) = exp(omega(i,j))/(1+exp(omega(i,j)));
+                        omega(i,j) = exp(omega(i,j)); //new
+                        tempsum += omega(i,j); //new
+                        nextindex = nextindex + ncolcovomega + 1;
+                    }
+                    
+                    for(j=2; j<M; j++) omega(i,j) = omega(i,j) / tempsum; //new
+                    if(i==0) omega(i,1) = 1 / tempsum;
+                    else omega(i,0) = 1 / tempsum;
+                    //tempsum = 1 - arma::sum(omega.row(i)); //prevent negative values
+                    //if(i==0) omega(i,1) = MAX(0,tempsum);
+                    //else omega(i,0) = MAX(0,tempsum);
+                }
+                
+            for(i=2;i<M;i++){
+                for(j=2;j<=i;j++){
+                    omega(i,j-1) = omega(i,j);
+                    if(i==j) omega(i,j)=0;
+                    }
+                }
+     
+            }//end section for zeroinflated poisson distribution
+            
+            
+            result(n+k,1) = curr;
+            u = Rcpp::runif(1,0,1)(0);
+            if(u<=zeroprop(curr-1)) result(n+k,0)=0;
+            else result(n+k,0) = Rcpp::rpois(1, theta(curr-1))(0);
+        }
+        
+        n += count;
+    }
+
     return(result);
     
 }
@@ -1309,6 +1975,13 @@ arma::mat hsmm_cov_nllk(arma::vec parm, int M, arma::vec y,arma::vec trunc,
                 //else omega(i,0) = MAX(0,tempsum);
             }
             
+            for(i=2;i<M;i++){
+                for(j=2;j<=i;j++){
+                    omega(i,j-1) = omega(i,j);
+                    if(i==j) omega(i,j)=0;
+                }
+            }
+            
         
       }//end section for zeroinflated poisson distribution
         
@@ -1334,7 +2007,6 @@ arma::mat hsmm_cov_nllk(arma::vec parm, int M, arma::vec y,arma::vec trunc,
 
 
 //////////////////////////////////////////////////////////////////////////////////
-
 // [[Rcpp::export]]
 double hsmm_common_negloglik(arma::vec allparm, int M, arma::vec ally, arma::vec trunc,arma::vec ntimes,
                              std::string dt_dist, arma::vec zeroindex,
@@ -2129,6 +2801,14 @@ arma::vec hsmm_cov_viterbi(arma::vec parm, int M, arma::vec y,arma::vec trunc, a
                     //else omega(i,0) = MAX(0,tempsum);
                 }
                 
+                
+                for(i=2;i<M;i++){
+                    for(j=2;j<=i;j++){
+                        omega(i,j-1) = omega(i,j);
+                        if(i==j) omega(i,j)=0;
+                    }
+                }
+                
             }
         //end section for zeroinflated poisson distribution
     
@@ -2296,6 +2976,13 @@ arma::vec hsmm_cov_viterbi(arma::vec parm, int M, arma::vec y,arma::vec trunc, a
                 //tempsum = 1 - arma::sum(omega.row(i)); //prevent negative values
                 //if(i==0) omega(i,1) = MAX(0,tempsum);
                 //else omega(i,0) = MAX(0,tempsum);
+            }
+            
+            for(i=2;i<M;i++){
+                for(j=2;j<=i;j++){
+                    omega(i,j-1) = omega(i,j);
+                    if(i==j) omega(i,j)=0;
+                }
             }
             
         }
