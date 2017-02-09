@@ -648,7 +648,7 @@ arma::mat hsmm_cov_gen(arma::vec parm, int M, long dim, std::string dt_dist, arm
     
     for(m=0; m<M; m++) pi(m) = pi(m) / tempsum;
     
-
+ 
     
     //////////////////
     //start generation
@@ -664,6 +664,8 @@ arma::mat hsmm_cov_gen(arma::vec parm, int M, long dim, std::string dt_dist, arm
     }else{
         count = rshiftpois(1, p(curr-1), 1)(0);
     }
+    
+    
     
     /////////////////
     for(k=0;k<count;k++) {
@@ -787,7 +789,8 @@ arma::mat hsmm_cov_gen(arma::vec parm, int M, long dim, std::string dt_dist, arm
     }
     
     n = count;
-    
+  
+  
 
     //////////////////////////////////////////////////////
     //iteration
@@ -934,7 +937,7 @@ arma::mat hsmm_cov_gen(arma::vec parm, int M, long dim, std::string dt_dist, arm
                   
                         p(i) = parm(nextindex);
                         for(m=0;m<ncolcovp;m++)
-                            p(i) += parm(nextindex+m+1)*covp(k,m);
+                            p(i) += parm(nextindex+m+1)*covp(n+k,m);
                         p(i) = exp(p(i)) / (1+exp(p(i)));
                        
                     nextindex = nextindex + ncolcovp + 1;
@@ -944,7 +947,7 @@ arma::mat hsmm_cov_gen(arma::vec parm, int M, long dim, std::string dt_dist, arm
                     
                     p(i) = parm(nextindex);
                         for(m=0;m<ncolcovp;m++)
-                            p(i) += parm(nextindex+m+1)*covp(k,m);
+                            p(i) += parm(nextindex+m+1)*covp(n+k,m);
                         p(i) = exp(p(i)) ;
                         
                     nextindex = nextindex + ncolcovp + 1;
@@ -959,7 +962,7 @@ arma::mat hsmm_cov_gen(arma::vec parm, int M, long dim, std::string dt_dist, arm
                 pi(m) = parm(nextindex);
                 
                 for(j=0;j<ncolcovpi;j++)
-                    pi(m) += parm(nextindex+j+1)*covpi(k,j) ;
+                    pi(m) += parm(nextindex+j+1)*covpi(n+k,j) ;
                 
                 pi(m) = exp(pi(m));
                 
@@ -977,7 +980,7 @@ arma::mat hsmm_cov_gen(arma::vec parm, int M, long dim, std::string dt_dist, arm
                     zeroprop(i) = parm(nextindex);
                     
                     for(m=0;m<ncolcovp1;m++)
-                        zeroprop(i) += parm(nextindex+m+1) * covp1(k,m);
+                        zeroprop(i) += parm(nextindex+m+1) * covp1(n+k,m);
                     
                     zeroprop(i) = exp(zeroprop(i))/(1+exp(zeroprop(i)));
                     nextindex = nextindex + ncolcovp1 + 1;
@@ -989,7 +992,7 @@ arma::mat hsmm_cov_gen(arma::vec parm, int M, long dim, std::string dt_dist, arm
             for(m=0; m<M; m++){
                 theta(m) = parm(nextindex);
                 for(j=0; j<ncolcovpois;j++){
-                    theta(m) += parm(nextindex+j+1) * covpois(k,j);
+                    theta(m) += parm(nextindex+j+1) * covpois(n+k,j);
                 }
                 theta(m) = exp(theta(m));
                 nextindex = nextindex + ncolcovpois + 1;
@@ -1008,7 +1011,7 @@ arma::mat hsmm_cov_gen(arma::vec parm, int M, long dim, std::string dt_dist, arm
                     for(j=2;j<M;j++){
                         omega(i,j) = parm(nextindex); //new
                         for(m=0;m<ncolcovomega;m++)
-                            omega(i,j) += parm(nextindex+m+1)*covomega(k,m);
+                            omega(i,j) += parm(nextindex+m+1)*covomega(n+k,m);
                         //omega(i,j) = exp(omega(i,j))/(1+exp(omega(i,j)));
                         omega(i,j) = exp(omega(i,j)); //new
                         tempsum += omega(i,j); //new
@@ -1042,8 +1045,9 @@ arma::mat hsmm_cov_gen(arma::vec parm, int M, long dim, std::string dt_dist, arm
         n += count;
     }
 
+     
     return(result);
-    
+     
 }
 
 
