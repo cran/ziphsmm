@@ -68,4 +68,3 @@ decode <- hmmviterbi(y,NULL,3,fit$prior,fit$tpm,fit$emit_parm,fit$zeroprop,
 Walter Zucchini, Iain L. MacDonald, Roland Langrock. Hidden Markov Models for 
 Time Series: An Introduction Using R, Second Edition. Chapman & Hall/CRC
 }
-

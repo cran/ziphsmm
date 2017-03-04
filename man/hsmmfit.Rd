@@ -156,4 +156,3 @@ fit
 Walter Zucchini, Iain L. MacDonald, Roland Langrock. Hidden Markov Models for 
 Time Series: An Introduction Using R, Second Edition. Chapman & Hall/CRC
 }
-

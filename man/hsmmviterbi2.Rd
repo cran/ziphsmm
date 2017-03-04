@@ -88,4 +88,3 @@ decode <- hsmmviterbi2(y,rep(1440,3),3,trunc,fit2$working_parameters,
 Walter Zucchini, Iain L. MacDonald, Roland Langrock. Hidden Markov Models for 
 Time Series: An Introduction Using R, Second Edition. Chapman & Hall/CRC
 }
-

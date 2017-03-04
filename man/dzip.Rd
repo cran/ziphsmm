@@ -21,4 +21,3 @@ the probability mass of the zero-inflated poisson distribution
 \description{
 pmf for zero-inflated poisson
 }
-

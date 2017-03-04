@@ -19,4 +19,3 @@ CAT
 A simulated dataset containing the per minute activity count for cats
 }
 \keyword{datasets}
-

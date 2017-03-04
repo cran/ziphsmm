@@ -1,8 +1,8 @@
 #' \tabular{ll}{
 #' Package: \tab ziphsmm \cr
 #' Type: \tab Package\cr
-#' Version: \tab 1.0.3\cr
-#' Date: \tab 2017-02-01\cr
+#' Version: \tab 1.0.4\cr
+#' Date: \tab 2017-03-01\cr
 #' License: \tab GPL-2\cr
 #' LazyLoad: \tab yes\cr
 #' LazyData: \tab yes\cr
@@ -20,7 +20,7 @@ NULL
 
 ##########################################################
 
-#' @useDynLib ziphsmm
+#' @useDynLib ziphsmm, .registration = TRUE
 #' @importFrom Rcpp evalCpp
 #' @importFrom graphics points
 #' @importFrom stats optim

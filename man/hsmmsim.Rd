@@ -61,4 +61,3 @@ hist(sim2$series,main="Histogram of observed values",xlab="observed values")
 Walter Zucchini, Iain L. MacDonald, Roland Langrock. Hidden Markov Models for 
 Time Series: An Introduction Using R, Second Edition. Chapman & Hall/CRC
 }
-

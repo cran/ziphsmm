@@ -19,4 +19,3 @@ a series of zero-inflated poisson random variables
 \description{
 generate zero-inflated poisson random variables
 }
-
