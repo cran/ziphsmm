@@ -7,14 +7,14 @@
 #' form a single time series, i.e. ntimes=length(y)
 #' @param M number of latent states
 #' @param trunc a vector specifying truncation at the maximum number of dwelling time in 
-#' each state. The higher the truncation, the more accurate the approximation but also 
-#' the more computationally expensive.
+#' each state. 
 #' @param prior a vector of prior probability values
-#' @param dt_dist dwell time distribution, can only be "log", "geometric",
-#' or "shiftedpoisson"
+#' @param dt_dist dwell time distribution, can only be "log", "shiftedpoisson", or
+#' "nonparametric". Default to "nonparametric".
 #' @param dt_parm a vector of parameter values in each dwell time distribution, which 
-#' should be a vector of p's for dt_dist == "log" and a vector of theta's for 
-#' dt_dist=="shiftpoisson"
+#' should be a vector of p's for dt_dist == "log", or a vector of theta's for 
+#' dt_dist=="shiftpoisson", or a matrix whose a matrix whose i,j th element is the probability 
+#' of staying in state i for duration j for dt_dist == "nonparametric".
 #' @param tpm_parm transition probability matrix
 #' @param emit_parm a vector containing means for each poisson distribution
 #' @param zero_init a vector containing structural zero proportions in each state
@@ -53,23 +53,30 @@
 #' @useDynLib ziphsmm
 #' @importFrom Rcpp evalCpp
 #' @export
-hsmmviterbi <- function(y, ntimes=NULL, M, trunc, prior, dt_dist, dt_parm, 
-                           tpm_parm, emit_parm, zero_init,
+hsmmviterbi <- function(y, ntimes=NULL, M, trunc, prior, dt_dist="nonparametric", 
+                        dt_parm, tpm_parm, emit_parm, zero_init,
                         plot=TRUE, xlim=NULL, ylim=NULL,...){
   
-  if(!dt_dist%in%c("log","shiftpoisson")) stop("dt_dist can only be 'log' or 'shiftpoisson'!")
+  if(!dt_dist%in%c("log","shiftpoisson","nonparametric")) 
+    stop("dt_dist can only be 'log' or 'shiftpoisson'!")
   if(floor(M)!=M | M<2) stop("The number of latent states must be an integer greater than or equal to 2!")
   if(length(prior)!=M | length(emit_parm)!=M | length(zero_init)!=M |
-     nrow(tpm_parm)!= M | ncol(tpm_parm)!=M | length(trunc)!=M |
-     length(dt_parm) != M) stop("The dimension of the initial value does not equal M!") 
+     nrow(tpm_parm)!= M | ncol(tpm_parm)!=M | length(trunc)!=M) 
+    stop("The dimension of the initial value does not equal M!") 
   
     if(is.null(ntimes)) ntimes <- length(y)
     state <- rep(NA, sum(ntimes))
     lastindex <- 0
     for(i in 1:length(ntimes)){
+      if(dt_dist=="nonparametric"){
+        state[(lastindex+1):(lastindex+ntimes[i])] <- hsmm_viterbi_np(y[(lastindex+1):(lastindex+ntimes[i])],
+                                                                      M,trunc,prior,emit_parm,tpm_parm,dt_parm,
+                                                                      zero_init)
+      }else{
       state[(lastindex+1):(lastindex+ntimes[i])] <- hsmm_viterbi(y[(lastindex+1):(lastindex+ntimes[i])],
                                                                  M, prior, emit_parm, tpm_parm, dt_parm, 
                                                                  trunc, dt_dist, zero_init)
+        }
       lastindex <- lastindex+ntimes[i]
     }
   

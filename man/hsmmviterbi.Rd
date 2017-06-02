@@ -4,8 +4,9 @@
 \alias{hsmmviterbi}
 \title{Viterbi algorithm to decode the latent states for hidden semi-Markov models}
 \usage{
-hsmmviterbi(y, ntimes = NULL, M, trunc, prior, dt_dist, dt_parm, tpm_parm,
-  emit_parm, zero_init, plot = TRUE, xlim = NULL, ylim = NULL, ...)
+hsmmviterbi(y, ntimes = NULL, M, trunc, prior, dt_dist = "nonparametric",
+  dt_parm, tpm_parm, emit_parm, zero_init, plot = TRUE, xlim = NULL,
+  ylim = NULL, ...)
 }
 \arguments{
 \item{y}{the observed series to be decoded}
@@ -17,17 +18,17 @@ form a single time series, i.e. ntimes=length(y)}
 \item{M}{number of latent states}
 
 \item{trunc}{a vector specifying truncation at the maximum number of dwelling time in 
-each state. The higher the truncation, the more accurate the approximation but also 
-the more computationally expensive.}
+each state.}
 
 \item{prior}{a vector of prior probability values}
 
-\item{dt_dist}{dwell time distribution, can only be "log", "geometric",
-or "shiftedpoisson"}
+\item{dt_dist}{dwell time distribution, can only be "log", "shiftedpoisson", or
+"nonparametric". Default to "nonparametric".}
 
 \item{dt_parm}{a vector of parameter values in each dwell time distribution, which 
-should be a vector of p's for dt_dist == "log" and a vector of theta's for 
-dt_dist=="shiftpoisson"}
+should be a vector of p's for dt_dist == "log", or a vector of theta's for 
+dt_dist=="shiftpoisson", or a matrix whose a matrix whose i,j th element is the probability 
+of staying in state i for duration j for dt_dist == "nonparametric".}
 
 \item{tpm_parm}{transition probability matrix}
 

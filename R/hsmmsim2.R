@@ -1,19 +1,23 @@
 
 #######################################################
 #' Simulate a hidden semi-Markov series and its underlying states with covariates 
-#' @param workparm working parameters,which are the logit of parameter p for 
+#' @param workparm working parameters. The first part is the logit of parameter p for 
 #' each log-series dwell time distribution or the log of parameter theta for each 
-#' shifted-poisson dwell time distribution, the generalized logit of prior probabilities (except for the
-#' 1st state),the logit of each nonzero structural zero proportions, the log of each 
+#' shifted-poisson dwell time distribution. If dt_dist is "nonparametric", then the first
+#' part is empty. The next part is the generalized logit of prior probabilities (except for 
+#' the 1st state),the logit of each nonzero structural zero proportions, the log of each 
 #' state-dependent poisson means, and the generalized logit of the transition probability 
-#' matrix(except 1st column and the diagonal elements)
+#' matrix(except 1st column and the diagonal elements).
 #' @param M number of latent states
 #' @param n length of the simulated series
 #' @param zeroindex a vector specifying whether a certain state is zero-inflated
-#' @param dt_dist dwell time distribution, can only be "log" or "shiftedpoisson"
-#' @param dt_x matrix of covariates for the dwell time distribution parameters.Default to NULL. 
+#' @param dt_dist dwell time distribution, can only be "log" or "shiftedpoisson" or
+#' "nonparametric". Default to "nonparametric".
+#' @param dt_x if dt_dist is "nonparametric", then dt_x is the matrix of nonparametric 
+#' state durataion probabilities. Otherwise, dt_x is matrix of covariates for the dwell time distribution 
+#' parameters in log-series or shifted-poisson distributions.Default to NULL. 
 #' @param prior_x matrix of covariates for generalized logit of prior probabilites (excluding the 
-#' 1st probability). Default to NULL.
+#' 1st probability). Default to NULL. Set to NULL if dt_dist is "nonparametric".
 #' @param tpm_x matrix of covariates for transition probability matrix (excluding the 1st column).
 #' Default to NULL.
 #' @param emit_x matrix of covariates for the log poisson means. Default to NULL.
@@ -100,11 +104,13 @@
 #' @importFrom Rcpp evalCpp
 #' @export
 #main function to fit a homogeneous hidden semi-markov model
-hsmmsim2 <- function(workparm, M, n, zeroindex, dt_dist,  dt_x=NULL,prior_x=NULL, 
-                     tpm_x=NULL, emit_x=NULL, zeroinfl_x=NULL){
+hsmmsim2 <- function(workparm, M, n, zeroindex,
+                     dt_dist="nonparametric", dt_x=NULL,
+                     prior_x=NULL, tpm_x=NULL, emit_x=NULL, zeroinfl_x=NULL){
   
   if(floor(M)!=M | M<2) stop("The number of latent states must be an integer greater than or equal to 2!")
-  if(!dt_dist%in%c("log","shiftpoisson")) stop("dt_dist can only be 'log' or 'shiftpoisson'!")
+  if(!dt_dist%in%c("log","shiftpoisson","nonparametric")) 
+    stop("dt_dist can only be 'log' or 'shiftpoisson' or 'nonparametric'!")
   
   #check if covariates
   tempmat <- matrix(0,nrow=n,ncol=1) #for NULL covariates
@@ -151,9 +157,15 @@ hsmmsim2 <- function(workparm, M, n, zeroindex, dt_dist,  dt_x=NULL,prior_x=NULL
     stop("Need at least 1 covariates!")
   }else{
     #if there are covariates
-    result <- hsmm_cov_gen(workparm, M, n, dt_dist, zeroindex, 
+    if(dt_dist=="nonparametric"){
+      result <- hsmm_cov_gen_np(workparm, dt_x, M, n, zeroindex, 
+                             ncovprior, covprior, ncovtpm, covtpm,
+                             ncovzeroinfl, covzeroinfl, ncovemit, covemit)
+    }else{
+      result <- hsmm_cov_gen(workparm, M, n, dt_dist, zeroindex, 
                            ncovdt, covdt, ncovprior, covprior, ncovtpm, covtpm,
                           ncovzeroinfl, covzeroinfl, ncovemit, covemit)
+    }
     series <- result[,1]
     state <- result[,2]
     
@@ -162,3 +174,6 @@ hsmmsim2 <- function(workparm, M, n, zeroindex, dt_dist,  dt_x=NULL,prior_x=NULL
   }
   
 }
+
+
+

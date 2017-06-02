@@ -4,16 +4,17 @@
 \alias{hsmmsim2}
 \title{Simulate a hidden semi-Markov series and its underlying states with covariates}
 \usage{
-hsmmsim2(workparm, M, n, zeroindex, dt_dist, dt_x = NULL, prior_x = NULL,
-  tpm_x = NULL, emit_x = NULL, zeroinfl_x = NULL)
+hsmmsim2(workparm, M, n, zeroindex, dt_dist = "nonparametric", dt_x = NULL,
+  prior_x = NULL, tpm_x = NULL, emit_x = NULL, zeroinfl_x = NULL)
 }
 \arguments{
-\item{workparm}{working parameters,which are the logit of parameter p for 
+\item{workparm}{working parameters. The first part is the logit of parameter p for 
 each log-series dwell time distribution or the log of parameter theta for each 
-shifted-poisson dwell time distribution, the generalized logit of prior probabilities (except for the
-1st state),the logit of each nonzero structural zero proportions, the log of each 
+shifted-poisson dwell time distribution. If dt_dist is "nonparametric", then the first
+part is empty. The next part is the generalized logit of prior probabilities (except for 
+the 1st state),the logit of each nonzero structural zero proportions, the log of each 
 state-dependent poisson means, and the generalized logit of the transition probability 
-matrix(except 1st column and the diagonal elements)}
+matrix(except 1st column and the diagonal elements).}
 
 \item{M}{number of latent states}
 
@@ -21,12 +22,15 @@ matrix(except 1st column and the diagonal elements)}
 
 \item{zeroindex}{a vector specifying whether a certain state is zero-inflated}
 
-\item{dt_dist}{dwell time distribution, can only be "log" or "shiftedpoisson"}
+\item{dt_dist}{dwell time distribution, can only be "log" or "shiftedpoisson" or
+"nonparametric". Default to "nonparametric".}
 
-\item{dt_x}{matrix of covariates for the dwell time distribution parameters.Default to NULL.}
+\item{dt_x}{if dt_dist is "nonparametric", then dt_x is the matrix of nonparametric 
+state durataion probabilities. Otherwise, dt_x is matrix of covariates for the dwell time distribution 
+parameters in log-series or shifted-poisson distributions.Default to NULL.}
 
 \item{prior_x}{matrix of covariates for generalized logit of prior probabilites (excluding the 
-1st probability). Default to NULL.}
+1st probability). Default to NULL. Set to NULL if dt_dist is "nonparametric".}
 
 \item{tpm_x}{matrix of covariates for transition probability matrix (excluding the 1st column).
 Default to NULL.}

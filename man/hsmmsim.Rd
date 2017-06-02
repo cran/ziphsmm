@@ -5,7 +5,8 @@
 \title{Simulate a hidden semi-Markov series and its corresponding states
 according to the specified parameters}
 \usage{
-hsmmsim(n, M, prior, dt_dist, dt_parm, tpm_parm, emit_parm, zeroprop)
+hsmmsim(n, M, prior, dt_dist = "nonparametric", dt_parm, tpm_parm, emit_parm,
+  zeroprop)
 }
 \arguments{
 \item{n}{length of the simulated series}
@@ -14,12 +15,13 @@ hsmmsim(n, M, prior, dt_dist, dt_parm, tpm_parm, emit_parm, zeroprop)
 
 \item{prior}{a vector of prior probability for each state}
 
-\item{dt_dist}{dwell time distribution, which should be either "log" or
-"shiftpoisson".}
+\item{dt_dist}{dwell time distribution, which should be "log" or
+"shiftpoisson" or "nonparametric". Default to "nonparametric".}
 
 \item{dt_parm}{a vector of dwell time distribution parameters for each state. If 
 dt_dist is "log", then dt_parm is vector of p's; if dt_dist is "shiftpoisson", then
-dt_parm is vector of theta's.}
+dt_parm is vector of theta's; if dt_dist is "nonparametric", then dt_parm is
+a matrix whose i,j th element is the probability of staying in state i for duration j.}
 
 \item{tpm_parm}{transition probability matrix, whose diagonal should be zero's.}
 

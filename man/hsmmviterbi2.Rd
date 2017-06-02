@@ -5,9 +5,10 @@
 \title{Viterbi algorithm to decode the latent states in hidden semi-Markov models
 with covariates}
 \usage{
-hsmmviterbi2(y, ntimes = NULL, M, trunc, workparm, dt_dist, zero_init,
-  prior_x = NULL, tpm_x = NULL, emit_x = NULL, zeroinfl_x = NULL,
-  dt_x = NULL, plot = FALSE, xlim = NULL, ylim = NULL, ...)
+hsmmviterbi2(y, ntimes = NULL, M, trunc, workparm,
+  dt_dist = "nonparametric", zero_init, prior_x = NULL, tpm_x = NULL,
+  emit_x = NULL, zeroinfl_x = NULL, dt_x = NULL, plot = FALSE,
+  xlim = NULL, ylim = NULL, ...)
 }
 \arguments{
 \item{y}{the observed series to be decoded}
@@ -19,17 +20,18 @@ form a single time series, i.e. ntimes=length(y)}
 \item{M}{number of latent states}
 
 \item{trunc}{a vector specifying the truncation at the maximum number of dwelling time 
-in each state. The higher the truncation, the more accurate the approximation but 
-also the more computationallyexpensive.}
+in each state.}
 
-\item{workparm}{a vector of the values for working parameters, which is the last element returned 
-from hmmfit() function. This consists the generalized logit of prior probabilities 
-(except for the 1st state), generalized logit of transition probability matrix
-(except for the 1st column), the  logit of nonzero structural zero proportions, and 
-the log poisson means}
+\item{workparm}{working parameters. The first part is the logit of parameter p for 
+each log-series dwell time distribution or the log of parameter theta for each 
+shifted-poisson dwell time distribution. If dt_dist is "nonparametric", then the first
+part is empty. The next part is the generalized logit of prior probabilities (except for 
+the 1st state),the logit of each nonzero structural zero proportions, the log of each 
+state-dependent poisson means, and the generalized logit of the transition probability 
+matrix(except 1st column and the diagonal elements).}
 
-\item{dt_dist}{dwell time distribution, can only be "log", "geometric",
-or "shiftedpoisson"}
+\item{dt_dist}{dwell time distribution, can only be "log", "shiftedpoisson" or
+"nonparametric". Default to "nonparametric".}
 
 \item{zero_init}{a vector containing structural zero proportions in each state, e.g. set
 zero_init[i] to be 0 if the i-th state is a regular poisson, and otherwise 1.}
@@ -44,7 +46,9 @@ Default to NULL.}
 
 \item{zeroinfl_x}{matrix of covariates for the nonzero structural zero proportions. Default to NULL.}
 
-\item{dt_x}{covariates for the dwell time distribution parameters.}
+\item{dt_x}{if dt_dist is "nonparametric", then dt_x is the matrix of nonparametric 
+state durataion probabilities. Otherwise, dt_x is matrix of covariates for the dwell time distribution 
+parameters in log-series or shifted-poisson distributions.Default to NULL.}
 
 \item{plot}{whether a plot should be returned}
 

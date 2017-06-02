@@ -110,3 +110,131 @@ hsmm_cov_viterbi <- function(parm, M, y, trunc, zeroindex, ncolcovp, covp, ncolc
     .Call('ziphsmm_hsmm_cov_viterbi', PACKAGE = 'ziphsmm', parm, M, y, trunc, zeroindex, ncolcovp, covp, ncolcovpi, covpi, ncolcovomega, covomega, ncolcovp1, covp1, ncolcovpois, covpois, dt_dist)
 }
 
+ziploglik_nocov <- function(delta, gamma, theta, lambda, y, ntimes) {
+    .Call('ziphsmm_ziploglik_nocov', PACKAGE = 'ziphsmm', delta, gamma, theta, lambda, y, ntimes)
+}
+
+retrieve_nocov <- function(parm, M) {
+    .Call('ziphsmm_retrieve_nocov', PACKAGE = 'ziphsmm', parm, M)
+}
+
+zipnegloglik_nocov <- function(parm, M, y, ntimes) {
+    .Call('ziphsmm_zipnegloglik_nocov', PACKAGE = 'ziphsmm', parm, M, y, ntimes)
+}
+
+colsum <- function(matrix) {
+    .Call('ziphsmm_colsum', PACKAGE = 'ziphsmm', matrix)
+}
+
+rowsum <- function(matrix) {
+    .Call('ziphsmm_rowsum', PACKAGE = 'ziphsmm', matrix)
+}
+
+forwardbackward <- function(Pi, P, nodeprob, y, ntimes) {
+    .Call('ziphsmm_forwardbackward', PACKAGE = 'ziphsmm', Pi, P, nodeprob, y, ntimes)
+}
+
+grad_ziploglik_nocov <- function(delta, gamma, theta, lambda, y, ntimes) {
+    .Call('ziphsmm_grad_ziploglik_nocov', PACKAGE = 'ziphsmm', delta, gamma, theta, lambda, y, ntimes)
+}
+
+grad_zipnegloglik_nocov <- function(parm, M, y, ntimes) {
+    .Call('ziphsmm_grad_zipnegloglik_nocov', PACKAGE = 'ziphsmm', parm, M, y, ntimes)
+}
+
+ziploglik_cov <- function(delta, gamma, thetaparm, lambdaparm, y, x, ntimes) {
+    .Call('ziphsmm_ziploglik_cov', PACKAGE = 'ziphsmm', delta, gamma, thetaparm, lambdaparm, y, x, ntimes)
+}
+
+retrieve_cov <- function(parm, M, ncolx) {
+    .Call('ziphsmm_retrieve_cov', PACKAGE = 'ziphsmm', parm, M, ncolx)
+}
+
+zipnegloglik_cov <- function(parm, y, covariates, M, ntimes) {
+    .Call('ziphsmm_zipnegloglik_cov', PACKAGE = 'ziphsmm', parm, y, covariates, M, ntimes)
+}
+
+grad_ziploglik_cov <- function(delta, gamma, thetaparm, lambdaparm, y, x, ntimes) {
+    .Call('ziphsmm_grad_ziploglik_cov', PACKAGE = 'ziphsmm', delta, gamma, thetaparm, lambdaparm, y, x, ntimes)
+}
+
+grad_zipnegloglik_cov <- function(parm, y, covariates, M, ntimes) {
+    .Call('ziphsmm_grad_zipnegloglik_cov', PACKAGE = 'ziphsmm', parm, y, covariates, M, ntimes)
+}
+
+nupdate_to_nbetween <- function(nupdate, nmin, dim, ntimes) {
+    .Call('ziphsmm_nupdate_to_nbetween', PACKAGE = 'ziphsmm', nupdate, nmin, dim, ntimes)
+}
+
+sgd_zip_nocov <- function(parm, y, M, ntimes, nmin, nupdate, power, rate) {
+    .Call('ziphsmm_sgd_zip_nocov', PACKAGE = 'ziphsmm', parm, y, M, ntimes, nmin, nupdate, power, rate)
+}
+
+sgd_zip_cov <- function(parm, y, x, M, ntimes, nmin, nupdate, power, rate) {
+    .Call('ziphsmm_sgd_zip_cov', PACKAGE = 'ziphsmm', parm, y, x, M, ntimes, nmin, nupdate, power, rate)
+}
+
+hsmm_gen_np <- function(dim, M, pi, theta, zeroprop, omega, dt) {
+    .Call('ziphsmm_hsmm_gen_np', PACKAGE = 'ziphsmm', dim, M, pi, theta, zeroprop, omega, dt)
+}
+
+hsmm_cov_gen_np <- function(parm, dt, M, dim, zeroindex, ncolcovpi, covpi, ncolcovomega, covomega, ncolcovp1, covp1, ncolcovpois, covpois) {
+    .Call('ziphsmm_hsmm_cov_gen_np', PACKAGE = 'ziphsmm', parm, dt, M, dim, zeroindex, ncolcovpi, covpi, ncolcovomega, covomega, ncolcovp1, covp1, ncolcovpois, covpois)
+}
+
+hsmm_viterbi_np <- function(y, M, trunc, pi, theta, omega, dm, zeroprop) {
+    .Call('ziphsmm_hsmm_viterbi_np', PACKAGE = 'ziphsmm', y, M, trunc, pi, theta, omega, dm, zeroprop)
+}
+
+hsmm_cov_viterbi_np <- function(parm, dm, M, trunc, y, zeroindex, ncolcovpi, covpi, ncolcovomega, covomega, ncolcovp1, covp1, ncolcovpois, covpois) {
+    .Call('ziphsmm_hsmm_cov_viterbi_np', PACKAGE = 'ziphsmm', parm, dm, M, trunc, y, zeroindex, ncolcovpi, covpi, ncolcovomega, covomega, ncolcovp1, covp1, ncolcovpois, covpois)
+}
+
+hsmmloglik_nocov <- function(dt, delta, gamma, theta, lambda, y, ntimes, trunc) {
+    .Call('ziphsmm_hsmmloglik_nocov', PACKAGE = 'ziphsmm', dt, delta, gamma, theta, lambda, y, ntimes, trunc)
+}
+
+hsmmretrieve_nocov <- function(parm, M, trunc) {
+    .Call('ziphsmm_hsmmretrieve_nocov', PACKAGE = 'ziphsmm', parm, M, trunc)
+}
+
+hsmmnegloglik_nocov <- function(parm, M, y, ntimes, trunc) {
+    .Call('ziphsmm_hsmmnegloglik_nocov', PACKAGE = 'ziphsmm', parm, M, y, ntimes, trunc)
+}
+
+gradhsmmloglik_nocov <- function(dt, delta, gamma, theta, lambda, y, ntimes, trunc) {
+    .Call('ziphsmm_gradhsmmloglik_nocov', PACKAGE = 'ziphsmm', dt, delta, gamma, theta, lambda, y, ntimes, trunc)
+}
+
+gradhsmmnegloglik_nocov <- function(parm, M, y, ntimes, trunc) {
+    .Call('ziphsmm_gradhsmmnegloglik_nocov', PACKAGE = 'ziphsmm', parm, M, y, ntimes, trunc)
+}
+
+hsmmloglik_cov <- function(dt, delta, gamma, thetaparm, lambdaparm, y, x, ntimes, trunc) {
+    .Call('ziphsmm_hsmmloglik_cov', PACKAGE = 'ziphsmm', dt, delta, gamma, thetaparm, lambdaparm, y, x, ntimes, trunc)
+}
+
+hsmmretrieve_cov <- function(parm, M, ncolx, trunc) {
+    .Call('ziphsmm_hsmmretrieve_cov', PACKAGE = 'ziphsmm', parm, M, ncolx, trunc)
+}
+
+hsmmnegloglik_cov <- function(parm, y, covariates, M, ntimes, trunc) {
+    .Call('ziphsmm_hsmmnegloglik_cov', PACKAGE = 'ziphsmm', parm, y, covariates, M, ntimes, trunc)
+}
+
+gradhsmmloglik_cov <- function(dt, delta, gamma, thetaparm, lambdaparm, y, x, ntimes, trunc) {
+    .Call('ziphsmm_gradhsmmloglik_cov', PACKAGE = 'ziphsmm', dt, delta, gamma, thetaparm, lambdaparm, y, x, ntimes, trunc)
+}
+
+gradhsmmnegloglik_cov <- function(parm, y, covariates, M, ntimes, trunc) {
+    .Call('ziphsmm_gradhsmmnegloglik_cov', PACKAGE = 'ziphsmm', parm, y, covariates, M, ntimes, trunc)
+}
+
+sgd_hsmm_nocov <- function(parm, y, M, ntimes, nmin, nupdate, power, rate, trunc) {
+    .Call('ziphsmm_sgd_hsmm_nocov', PACKAGE = 'ziphsmm', parm, y, M, ntimes, nmin, nupdate, power, rate, trunc)
+}
+
+sgd_hsmm_cov <- function(parm, y, x, M, ntimes, nmin, nupdate, power, rate, trunc) {
+    .Call('ziphsmm_sgd_hsmm_cov', PACKAGE = 'ziphsmm', parm, y, x, M, ntimes, nmin, nupdate, power, rate, trunc)
+}
+

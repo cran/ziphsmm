@@ -8,15 +8,16 @@
 #' form a single time series, i.e. ntimes=length(y)
 #' @param M number of latent states
 #' @param trunc a vector specifying the truncation at the maximum number of dwelling time 
-#' in each state. The higher the truncation, the more accurate the approximation but 
-#' also the more computationallyexpensive.
-#' @param workparm a vector of the values for working parameters, which is the last element returned 
-#' from hmmfit() function. This consists the generalized logit of prior probabilities 
-#' (except for the 1st state), generalized logit of transition probability matrix
-#' (except for the 1st column), the  logit of nonzero structural zero proportions, and 
-#' the log poisson means
-#' @param dt_dist dwell time distribution, can only be "log", "geometric",
-#' or "shiftedpoisson"
+#' in each state.
+#' @param workparm working parameters. The first part is the logit of parameter p for 
+#' each log-series dwell time distribution or the log of parameter theta for each 
+#' shifted-poisson dwell time distribution. If dt_dist is "nonparametric", then the first
+#' part is empty. The next part is the generalized logit of prior probabilities (except for 
+#' the 1st state),the logit of each nonzero structural zero proportions, the log of each 
+#' state-dependent poisson means, and the generalized logit of the transition probability 
+#' matrix(except 1st column and the diagonal elements).
+#' @param dt_dist dwell time distribution, can only be "log", "shiftedpoisson" or
+#' "nonparametric". Default to "nonparametric".
 #' @param zero_init a vector containing structural zero proportions in each state, e.g. set
 #' zero_init[i] to be 0 if the i-th state is a regular poisson, and otherwise 1.
 #' @param prior_x matrix of covariates for generalized logit of prior probabilites (excluding the 
@@ -25,7 +26,9 @@
 #' Default to NULL.
 #' @param emit_x matrix of covariates for the log poisson means. Default to NULL.
 #' @param zeroinfl_x matrix of covariates for the nonzero structural zero proportions. Default to NULL.
-#' @param dt_x covariates for the dwell time distribution parameters.
+#' @param dt_x if dt_dist is "nonparametric", then dt_x is the matrix of nonparametric 
+#' state durataion probabilities. Otherwise, dt_x is matrix of covariates for the dwell time distribution 
+#' parameters in log-series or shifted-poisson distributions.Default to NULL.
 #' @param plot whether a plot should be returned
 #' @param xlim vector specifying the minimum and maximum on the x-axis in the plot. 
 #' Default to NULL.
@@ -58,10 +61,12 @@
 #' @useDynLib ziphsmm
 #' @importFrom Rcpp evalCpp
 #' @export
-hsmmviterbi2 <- function(y, ntimes=NULL, M, trunc, workparm, dt_dist, zero_init,
+hsmmviterbi2 <- function(y, ntimes=NULL, M, trunc, workparm, dt_dist="nonparametric",
+                        zero_init,
                         prior_x=NULL, tpm_x=NULL, emit_x=NULL,zeroinfl_x=NULL,
                         dt_x=NULL,plot=FALSE, xlim=NULL, ylim=NULL, ...){
-  if(!dt_dist%in%c("log","shiftpoisson")) stop("dt_dist can only be 'log' or 'shiftpoisson'!")
+  if(!dt_dist%in%c("log","shiftpoisson","nonparametric"))
+    stop("dt_dist can only be 'log' or 'shiftpoisson'!")
   if(floor(M)!=M | M<2) stop("The number of latent states must be an integer greater than or equal to 2!")
   if(length(zero_init)!=M | length(trunc)!=M) 
     stop("The dimension of the zero_init or trunc does not equal M!") 
@@ -110,14 +115,25 @@ hsmmviterbi2 <- function(y, ntimes=NULL, M, trunc, workparm, dt_dist, zero_init,
   
   lastindex <- 0
   for(i in 1:length(ntimes)){
-    state[(lastindex+1):(lastindex+ntimes[i])] <- hsmm_cov_viterbi(workparm, M,
-                                                                  y[(lastindex+1):(lastindex+ntimes[i])], trunc,zero_init,
-                                                                  ncovdt,covdt[(lastindex+1):(lastindex+ntimes[i]),,drop=FALSE],
-                                                                  ncovprior,covprior[(lastindex+1):(lastindex+ntimes[i]),,drop=FALSE],
-                                                                  ncovtpm,covtpm[(lastindex+1):(lastindex+ntimes[i]),,drop=FALSE],
-                                                                  ncovzeroinfl,covzeroinfl[(lastindex+1):(lastindex+ntimes[i]),,drop=FALSE],
-                                                                  ncovemit,covemit[(lastindex+1):(lastindex+ntimes[i]),,drop=FALSE],
-                                                                  dt_dist)
+    if(dt_dist=="nonparametric"){
+      state[(lastindex+1):(lastindex+ntimes[i])] <- hsmm_cov_viterbi_np(workparm,dt_x,
+                                                                        M,trunc,y[(lastindex+1):(lastindex+ntimes[i])], 
+                                                                        zero_init,
+                                                                        ncovprior,covprior[(lastindex+1):(lastindex+ntimes[i]),,drop=FALSE],
+                                                                        ncovtpm,covtpm[(lastindex+1):(lastindex+ntimes[i]),,drop=FALSE],
+                                                                        ncovzeroinfl,covzeroinfl[(lastindex+1):(lastindex+ntimes[i]),,drop=FALSE],
+                                                                        ncovemit,covemit[(lastindex+1):(lastindex+ntimes[i]),,drop=FALSE])
+    }else{
+      state[(lastindex+1):(lastindex+ntimes[i])] <- hsmm_cov_viterbi(workparm, M,
+                                                                     y[(lastindex+1):(lastindex+ntimes[i])], trunc,zero_init,
+                                                                     ncovdt,covdt[(lastindex+1):(lastindex+ntimes[i]),,drop=FALSE],
+                                                                     ncovprior,covprior[(lastindex+1):(lastindex+ntimes[i]),,drop=FALSE],
+                                                                     ncovtpm,covtpm[(lastindex+1):(lastindex+ntimes[i]),,drop=FALSE],
+                                                                     ncovzeroinfl,covzeroinfl[(lastindex+1):(lastindex+ntimes[i]),,drop=FALSE],
+                                                                     ncovemit,covemit[(lastindex+1):(lastindex+ntimes[i]),,drop=FALSE],
+                                                                     dt_dist)
+    }
+    
     lastindex <- lastindex+ntimes[i]
   }
   
