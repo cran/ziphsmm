@@ -2,8 +2,9 @@
 % Please edit documentation in R/hmmfit.R
 \name{hmmfit}
 \alias{hmmfit}
-\title{Estimate the parameters of a homogeneous hidden Markov model 
-by directly minimizing of the negative log-likelihood function}
+\title{Estimate the parameters of a general zero-inflated Poisson hidden Markov model
+by directly minimizing of the negative log-likelihood function using the
+gradient descent algorithm.}
 \usage{
 hmmfit(y, ntimes = NULL, M, prior_init, tpm_init, emit_init, zero_init,
   prior_x = NULL, tpm_x = NULL, emit_x = NULL, zeroinfl_x = NULL,
@@ -51,8 +52,9 @@ each state-dependent poisson means}
 the maximum likelihood estimates of the zero-inflated hidden Markov model
 }
 \description{
-Estimate the parameters of a homogeneous hidden Markov model 
-by directly minimizing of the negative log-likelihood function
+Estimate the parameters of a general zero-inflated Poisson hidden Markov model
+by directly minimizing of the negative log-likelihood function using the
+gradient descent algorithm.
 }
 \examples{
 prior_init <- c(0.5,0.2,0.3)

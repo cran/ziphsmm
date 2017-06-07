@@ -2,8 +2,9 @@
 % Please edit documentation in R/hsmmfit.R
 \name{hsmmfit}
 \alias{hsmmfit}
-\title{Estimate the parameters of a homogeneous hidden semi-Markov model 
-by directly minimizing of the negative log-likelihood function}
+\title{Estimate the parameters of a general zero-inflated Poisson hidden semi-Markov model
+by directly minimizing of the negative log-likelihood function using the gradient
+descent algorithm.}
 \usage{
 hsmmfit(y, ntimes = NULL, M, trunc, prior_init, dt_dist, dt_init, tpm_init,
   emit_init, zero_init, prior_x = NULL, dt_x = NULL, tpm_x = NULL,
@@ -68,8 +69,9 @@ matrix(except 1st column and the diagonal elements)}
 simulated series and corresponding states
 }
 \description{
-Estimate the parameters of a homogeneous hidden semi-Markov model 
-by directly minimizing of the negative log-likelihood function
+Estimate the parameters of a general zero-inflated Poisson hidden semi-Markov model
+by directly minimizing of the negative log-likelihood function using the gradient
+descent algorithm.
 }
 \examples{
 

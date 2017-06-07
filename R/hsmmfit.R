@@ -1,7 +1,8 @@
 
 #######################################################
-#' Estimate the parameters of a homogeneous hidden semi-Markov model 
-#' by directly minimizing of the negative log-likelihood function
+#' Estimate the parameters of a general zero-inflated Poisson hidden semi-Markov model
+#' by directly minimizing of the negative log-likelihood function using the gradient
+#' descent algorithm.
 #'
 #' @param y observed time series values
 #' @param ntimes A vector specifying the lengths of individual, 

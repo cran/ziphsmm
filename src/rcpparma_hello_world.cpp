@@ -3811,6 +3811,7 @@ arma::mat sgd_zip_nocov(arma::vec parm, arma::vec y, int M, arma::vec ntimes,
     long dim = y.n_rows;
     int n = ntimes.n_rows;
     int i,j,m,t,k;
+    double ifloat = 0;
     //double coef;
     arma::vec coef;
     int cumsum1, cumsum2;
@@ -3899,7 +3900,9 @@ arma::mat sgd_zip_nocov(arma::vec parm, arma::vec y, int M, arma::vec ntimes,
         }
         
         //coef = (i+1)^(-power)
-        coef = exp(-power * log(i+1)) * rate / cumsum1;
+        coef = exp(-power * log(ifloat+1)) * rate / cumsum1;
+        ifloat ++;
+        
         parm -= coef % neggradient;
         //Rcpp::Rcout<<i<<std::endl;
         //Rcpp::Rcout<<coef<<std::endl;
@@ -3928,7 +3931,7 @@ arma::mat sgd_zip_cov(arma::vec parm, arma::vec y, arma::mat x, int M, arma::vec
     //double coef;
     arma::vec coef;
     int cumsum1, cumsum2;
-    
+    double ifloat = 0;
     arma::mat nbetween = nupdate_to_nbetween(nupdate, nmin, dim, ntimes);
     //only 3 different lengths of y
     arma::vec length = colsum(nbetween);
@@ -4019,7 +4022,8 @@ arma::mat sgd_zip_cov(arma::vec parm, arma::vec y, arma::mat x, int M, arma::vec
         }
         
         //coef = (i+1)^(-power)
-        coef = exp(-power * log(i+1)) * rate / cumsum1;
+        coef = exp(-power * log(ifloat+1)) * rate / cumsum1;
+        ifloat++;
         parm -= coef % neggradient;
         
         //Rcpp::Rcout<<i<<std::endl;
@@ -5911,7 +5915,7 @@ arma::mat sgd_hsmm_nocov(arma::vec parm, arma::vec y, int M, arma::vec ntimes,
     arma::vec coef;
     int cumsum1, cumsum2;
     int totalmv = arma::sum(trunc);
-    
+    double ifloat = 0;
     arma::mat nbetween = nupdate_to_nbetween(nupdate, nmin, dim, ntimes);
     //only 3 different lengths of y
     arma::vec length = colsum(nbetween);
@@ -5996,7 +6000,8 @@ arma::mat sgd_hsmm_nocov(arma::vec parm, arma::vec y, int M, arma::vec ntimes,
         }
         
         //coef = (i+1)^(-power)
-        coef = exp(-power * log(i+1)) * rate / cumsum1;
+        coef = exp(-power * log(ifloat+1)) * rate / cumsum1;
+        ifloat++;
         parm -= coef % neggradient;
         //Rcpp::Rcout<<i<<std::endl;
         //Rcpp::Rcout<<coef<<std::endl;
@@ -6027,6 +6032,7 @@ arma::mat sgd_hsmm_cov(arma::vec parm, arma::vec y, arma::mat x, int M, arma::ve
     arma::vec coef;
     int cumsum1, cumsum2;
     int totalmv = arma::sum(trunc);
+    double ifloat = 0;
     
     arma::mat nbetween = nupdate_to_nbetween(nupdate, nmin, dim, ntimes);
     //only 3 different lengths of y
@@ -6118,7 +6124,8 @@ arma::mat sgd_hsmm_cov(arma::vec parm, arma::vec y, arma::mat x, int M, arma::ve
         }
         
         //coef = (i+1)^(-power)
-        coef = exp(-power * log(i+1)) * rate / cumsum1;
+        coef = exp(-power * log(ifloat+1)) * rate / cumsum1;
+        ifloat++;
         parm -= coef % neggradient;
         
         //Rcpp::Rcout<<i<<std::endl;
