@@ -1,8 +1,8 @@
 #' \tabular{ll}{
 #' Package: \tab ziphsmm \cr
 #' Type: \tab Package\cr
-#' Version: \tab 1.0.5\cr
-#' Date: \tab 2017-06-01\cr
+#' Version: \tab 1.0.7\cr
+#' Date: \tab 2017-09-07\cr
 #' License: \tab GPL-2\cr
 #' LazyLoad: \tab yes\cr
 #' LazyData: \tab yes\cr

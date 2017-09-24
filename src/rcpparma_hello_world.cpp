@@ -22,59 +22,155 @@
 // available from R
 
 
-/*
-arma::mat rcpparma_hello_world(int k) {
-    arma::mat m1 = arma::eye<arma::mat>(k, k);
-    arma::mat m2 = arma::eye<arma::mat>(k, k);
-	                     
-    return m1 + 3 * (m1 + m2);
-}
-
-
-// another simple example: outer product of a vector,
-// returning a matrix
-//
+/////////////////////////
 // [[Rcpp::export]]
-arma::mat rcpparma_outerproduct(const arma::colvec & x) {
-    arma::mat m = x * x.t();
-    return m;
+arma::vec vectorize(arma::mat mat, int axis){
+    int row = mat.n_rows;
+    int col = mat.n_cols;
+    int i,j;
+    arma::vec result(row*col);
+    for(i=0;i<row;i++){
+        for(j=0;j<col;j++){
+            if(axis==0)  result(i+j*row) = mat(i,j);  // by column
+            else result(j+i*col) = mat(i,j); //by row
+        }
+    }
+    return result;
 }
 
-// and the inner product returns a scalar
-//
+
 // [[Rcpp::export]]
-double rcpparma_innerproduct(const arma::colvec & x) {
-    double v = arma::as_scalar(x.t() * x);
-    return v;
+arma::mat vec2mat(arma::vec vec, int row, int col, int axis){
+    int i,j;
+    arma::mat result(row, col);
+    for(i=0; i<row; i++){
+        for(j=0; j<col; j++){
+            if(axis==0)  result(i,j) = vec(i+j*row) ; //by column
+            else  result(i,j) = vec(j+i*col);     // by row
+        }
+    }
+    return result;
 }
 
-
-//' use Rcpp::List to return both at the same time
-//' @export
+///////////////////////////////////////
 // [[Rcpp::export]]
-Rcpp::List rcpparma_bothproducts(const arma::colvec & x) {
-    arma::mat op = x * x.t();
-    double    ip = arma::as_scalar(x.t() * x);
-    return Rcpp::List::create(Rcpp::Named("outer")=op,
-                              Rcpp::Named("inner")=ip);
+arma::vec colsum(arma::mat matrix){
+    long row = matrix.n_rows;
+    int col = matrix.n_cols;
+    long i;
+    int j;
+    arma::vec columnsum(col);
+    
+    for(j=0; j<col; j++) columnsum(j) = 0;
+    for(i=0; i<row; i++){
+        for(j=0; j<col; j++){
+            columnsum(j) += matrix(i,j);
+        }
+    }
+    return columnsum;
 }
 
-*/
-
-
-
-//using namespace Rcpp;
-/*
-arma::vec diagonal(arma::mat a){
-    arma::vec result;
-    arma::mat temp;
-    //Rcpp::Rcout<< MAX(NAN,2) << std::endl; //this works
-    //Rcpp::Rcout<< MAX(NAN,NAN) << std::endl; //this works
-    temp = arma::inv(a.t()*a);
-    result = a.diag();
-    return(result);
+///////////////////////////////////////
+// [[Rcpp::export]]
+arma::vec rowsum(arma::mat matrix){
+    long row = matrix.n_rows;
+    int col = matrix.n_cols;
+    long i;
+    int j;
+    arma::vec rowsum(row);
+    
+    for(i=0; i<row; i++) rowsum(i) = 0;
+    for(j=0; j<col; j++){
+        for(i=0; i<row; i++){
+            rowsum(i) += matrix(i,j);
+        }
+    }
+    return rowsum;
 }
-*/
+
+//////////////////////////////////////////////////////////////////////////////////
+//subset a big matrix by the beginning and ending of row/col index
+// [[Rcpp::export]]
+arma::mat subsetmatrix(arma::mat rawmat, arma::vec rowindex, arma::vec colindex){
+    int row = rowindex(1) - rowindex(0) + 1;
+    int col = colindex(1) - colindex(0) + 1;
+    arma::mat result(row,col);
+    int i,j;
+    for(i=0;i<row;i++){
+        for(j=0;j<col;j++){
+            result(i,j) = rawmat(rowindex(0)+i,colindex(0)+j);
+        }
+    }
+    return result;
+}
+
+/////////////////////////////
+//compute matrix power
+// [[Rcpp::export]]
+arma::mat matrixpower(arma::mat oldmat, int power){
+    arma::mat newmat = oldmat;
+    int i;
+    
+    for(i=1;i<power;i++) newmat *= oldmat;
+    
+    return newmat;
+}
+
+///////////////////////////
+//compute matrix exponential
+// [[Rcpp::export]]
+arma::mat matrixexp(arma::mat oldmat, double t){
+    arma::mat temp = t * oldmat;
+    arma::mat newmat = arma::expmat(temp);
+    return newmat;
+}
+
+/////////////
+// [[Rcpp::export]]
+double matrixsum(arma::mat mat1, arma::mat mat2){
+    double tempsum=0;
+    arma::mat temp = mat1 % mat2;
+    int row = mat1.n_rows;
+    int col = mat1.n_cols;
+    int i,j;
+    for(i=0;i<row;i++){
+        for(j=0;j<col;j++){
+            tempsum += temp(i,j);
+        }
+    }
+    return(tempsum);
+}
+
+////////////
+//integral of matrix exponential
+// x and y starts from 0
+// [[Rcpp::export]]
+arma::mat matrixintegral(arma::mat Q, double interval, int x, int y){
+    int M = Q.n_cols;
+    arma::mat temp(2*M, 2*M);
+    temp.zeros();
+    int i,j;
+    
+    for(i=0;i<M;i++)
+        for(j=0;j<M;j++)
+            temp(i,j) = Q(i,j);
+    
+    for(i=M;i<2*M;i++)
+        for(j=M;j<2*M;j++)
+            temp(i,j) = Q(i-M,j-M);
+    
+    temp(x, M+y) = 1;
+    
+    
+    arma::mat temp1 = matrixexp(temp, interval);
+    //Rcpp::Rcout<<temp1<<std::endl;
+    arma::vec rowindex(2);
+    arma::vec colindex(2);
+    rowindex(0)=0; rowindex(1) = M-1; colindex(0) = M; colindex(1) = 2*M-1;
+    arma::mat result = subsetmatrix(temp1,rowindex,colindex);
+    return result;
+}
+
 
 ////////////////////////////////////////////////////////////
 //' pmf for zero-inflated poisson
@@ -322,6 +418,57 @@ arma::mat hmm_gen (int dim, int M, int ntimes, arma::vec pi, arma::mat a, arma::
     return(result);
 }
 
+////////////////////////////////////////////////////
+// [[Rcpp::export]]
+arma::mat getnodeprob_nocov(arma::vec ystar, arma::mat emit){
+    long ns = ystar.n_rows; //original numeric series starting from 1
+    int d = emit.n_rows;
+    
+    arma::mat nodeprob(ns, d);
+    
+    long i;
+    int j;
+    
+    for(i=0; i<ns; i++){
+        for(j=0; j<d; j++){
+            
+                //emit(0,0) is zeroprop for state 1, emit(0,1) is lambda for state 1
+                nodeprob(i,j) = dzip(emit(j,0), emit(j,1), ystar(i), FALSE);
+          
+        }
+    }
+    return nodeprob;
+}
+
+
+////////////////////////////////
+// [[Rcpp::export]]
+arma::mat getnodeprob_cov(arma::vec y, arma::mat x, arma::vec zerovec, arma::mat emitmat, int m){
+    long ns = y.n_rows; //original numeric series starting from 1
+    arma::mat nodeprob(ns, m);
+    arma::vec eta;
+    double zeroprop,lambda;
+    long i;
+    int j;
+    
+    for(i=0;i<ns;i++){
+        for(j=0;j<m;j++){
+            if(j==0){
+                eta = x.row(i) * zerovec ;
+                zeroprop = exp(eta(0)) / (1+exp(eta(0)));
+                eta = x.row(i) * emitmat.row(i).t();
+                lambda = exp(eta(0));
+                nodeprob(i,j) = dzip(zeroprop, lambda, y(i), FALSE);
+            }
+            else{
+                eta = x.row(i) * emitmat.row(i).t();
+                lambda = exp(eta(0));
+                nodeprob(i,j) = dzip(zeroprop, lambda, y(i), FALSE);
+            }
+          }
+    }
+    return nodeprob;
+}
 
 ///////////////////////////////////////////
 //[[Rcpp::export]]
@@ -3233,41 +3380,6 @@ double zipnegloglik_nocov(arma::vec parm, int M, arma::vec y, arma::vec ntimes){
     return negloglik;
 }
 
-///////////////////////////////////////
-// [[Rcpp::export]]
-arma::vec colsum(arma::mat matrix){
-    long row = matrix.n_rows;
-    int col = matrix.n_cols;
-    long i;
-    int j;
-    arma::vec columnsum(col);
-    
-    for(j=0; j<col; j++) columnsum(j) = 0;
-    for(i=0; i<row; i++){
-        for(j=0; j<col; j++){
-            columnsum(j) += matrix(i,j);
-        }
-    }
-    return columnsum;
-}
-
-///////////////////////////////////////
-// [[Rcpp::export]]
-arma::vec rowsum(arma::mat matrix){
-    long row = matrix.n_rows;
-    int col = matrix.n_cols;
-    long i;
-    int j;
-    arma::vec rowsum(row);
-    
-    for(i=0; i<row; i++) rowsum(i) = 0;
-    for(j=0; j<col; j++){
-        for(i=0; i<row; i++){
-            rowsum(i) += matrix(i,j);
-        }
-    }
-    return rowsum;
-}
 
 ////////////////////////////////////////////////////
 // [[Rcpp::export]]
@@ -3370,7 +3482,6 @@ arma::vec grad_ziploglik_nocov(arma::vec delta, arma::mat gamma, double theta, a
     int M = lambda.n_rows;
     int n = ntimes.n_rows;
     int i,j,m,t,k;
-    double tempsum;
     arma::mat nodeprob(dim, M);
     
     
@@ -3632,7 +3743,6 @@ arma::vec grad_ziploglik_cov(arma::vec delta, arma::mat gamma, arma::vec thetapa
     int M = gamma.n_rows;
     int n = ntimes.n_rows;
     int i,j,m,t,k;
-    double tempsum;
     double theta;
     arma::vec tempval;
     arma::vec lambda(M);
@@ -3810,7 +3920,7 @@ arma::mat sgd_zip_nocov(arma::vec parm, arma::vec y, int M, arma::vec ntimes,
     
     long dim = y.n_rows;
     int n = ntimes.n_rows;
-    int i,j,m,t,k;
+    int i,j,t;
     double ifloat = 0;
     //double coef;
     arma::vec coef;
@@ -3927,7 +4037,7 @@ arma::mat sgd_zip_cov(arma::vec parm, arma::vec y, arma::mat x, int M, arma::vec
     int n = ntimes.n_rows;
     int ncolx = x.n_cols;
     //Rcpp::List mod = retrieve_cov(parm,M,ncolx);
-    int i,j,m,t,k;
+    int i,j,t;
     //double coef;
     arma::vec coef;
     int cumsum1, cumsum2;
@@ -4475,7 +4585,7 @@ arma::vec hsmm_viterbi_np(arma::vec y, int M, arma::vec trunc, arma::vec pi, arm
     double tempsum;
     arma::vec state(dim);
     int i,j;
-    int dmcol = arma::max(trunc); //get the maximum
+    //int dmcol = arma::max(trunc); //get the maximum
     int totalmv = arma::sum(trunc);
     arma::vec newtheta(totalmv);
     arma::vec newpi(totalmv);
@@ -4530,7 +4640,7 @@ arma::vec hsmm_cov_viterbi_np(arma::vec parm, arma::mat dm, int M, arma::vec tru
     
     long dim = y.n_rows;
     int i,j,m,n,nextindex;
-    int dmcol = arma::max(trunc); //get the maximum
+    //int dmcol = arma::max(trunc); //get the maximum
     int totalmv = arma::sum(trunc);
     arma::vec pi(M);
     arma::vec theta(M);
@@ -5049,8 +5159,7 @@ Rcpp::List hsmmretrieve_nocov(arma::vec parm, int M, arma::vec trunc){
     
     int dtcol = arma::max(trunc); //get the maximum
     arma::mat dt(M, dtcol);
-    int totalmv = arma::sum(trunc);
-    
+    //int totalmv = arma::sum(trunc);
     //retrieve the full parameters
     
     dt.zeros();
@@ -5157,7 +5266,7 @@ double hsmmnegloglik_nocov(arma::vec parm, int M, arma::vec y, arma::vec ntimes,
 // [[Rcpp::export]]
 arma::vec gradhsmmloglik_nocov(arma::mat dt, arma::vec delta, arma::mat gamma, double theta, arma::vec lambda,
                                arma::vec y, arma::vec ntimes, arma::vec trunc){
-    double loglik = 0;
+    //double loglik = 0;
     long dim = y.n_rows;
     int M = lambda.n_rows;
     int n = ntimes.n_rows;
@@ -5504,7 +5613,6 @@ Rcpp::List hsmmretrieve_cov(arma::vec parm, int M, int ncolx, arma::vec trunc){
     
     int dtcol = arma::max(trunc); //get the maximum
     arma::mat dt(M, dtcol);
-    int totalmv = arma::sum(trunc);
     
     //retrieve the full parameters
     
@@ -5616,7 +5724,7 @@ double hsmmnegloglik_cov(arma::vec parm, arma::vec y, arma::mat covariates, int 
 // [[Rcpp::export]]
 arma::vec gradhsmmloglik_cov(arma::mat dt, arma::vec delta, arma::mat gamma, arma::vec thetaparm, arma::mat lambdaparm,
                              arma::vec y, arma::mat x, arma::vec ntimes, arma::vec trunc){
-    double loglik = 0;
+    //double loglik = 0;
     long dim = y.n_rows;
     int ncolx = x.n_cols;
     int M = dt.n_rows;
@@ -5910,7 +6018,7 @@ arma::mat sgd_hsmm_nocov(arma::vec parm, arma::vec y, int M, arma::vec ntimes,
     
     long dim = y.n_rows;
     int n = ntimes.n_rows;
-    int i,j,m,t,k;
+    int i,j,t;
     //double coef;
     arma::vec coef;
     int cumsum1, cumsum2;
@@ -6027,7 +6135,7 @@ arma::mat sgd_hsmm_cov(arma::vec parm, arma::vec y, arma::mat x, int M, arma::ve
     int n = ntimes.n_rows;
     int ncolx = x.n_cols;
     //Rcpp::List mod = retrieve_cov(parm,M,ncolx);
-    int i,j,m,t,k;
+    int i,j,t;
     //double coef;
     arma::vec coef;
     int cumsum1, cumsum2;
@@ -6138,6 +6246,1293 @@ arma::mat sgd_hsmm_cov(arma::vec parm, arma::vec y, arma::mat x, int M, arma::ve
     
     return result;
     
+}
+
+//[[Rcpp::export]]
+arma::cube getallexpm(arma::mat tpm, arma::vec udiff){
+    int dim = udiff.n_rows;
+    int M = tpm.n_rows;
+    arma::cube result(M,M,dim);
+    int i;
+    for(i=0; i<dim; i++) result.slice(i) = matrixexp(tpm, udiff(i));
+    return result;
+}
+
+//[[Rcpp::export]]
+int locate(double interval, arma::vec udiff){
+    int i, result=0;
+    int dim = udiff.n_rows;
+    for(i=0; i<dim; i++){
+        if(interval==udiff(i)) {
+            result=i;
+            break;
+        }
+    }
+    return result;
+}
+
+
+/////////////
+// [[Rcpp::export]]
+arma::mat get_c(arma::mat xi, arma::vec diffvec, arma::vec udiff){
+    int ncol = xi.n_cols;
+    int nrow = udiff.n_rows;
+    int ns = xi.n_rows;
+    arma::mat C(nrow, ncol);
+    C.zeros();
+    
+    int i,j,k;
+    for(i=0; i<ns; i++){
+        for(j=0; j<ncol; j++){
+            for(k=0; k<nrow; k++){
+                if(diffvec(i) == udiff(k)){
+                    C(k, j) += xi(i,j);
+                    break;
+                }
+            }
+        }
+    }
+    return C;
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// [[Rcpp::export]]
+arma::mat get_taun(arma::mat Q, arma::vec udiff, arma::mat C){
+    int nstate = Q.n_cols;
+    //int ns = diffvec.n_rows;
+    int ndelta = udiff.n_rows;
+    int i,j,k;
+    
+    arma::mat countmat(nstate, nstate);
+    arma::mat tempint(nstate, nstate);
+    arma::mat pkl(nstate, nstate);
+    arma::mat di(nstate, nstate);
+    arma::vec tempvec(nstate*nstate);
+    arma::mat cmat(nstate,nstate);
+    arma::mat tempmat(nstate, nstate);
+    arma::mat result(nstate,nstate);
+    countmat.zeros();
+    result.zeros();
+    
+    //arma::mat identity = arma::eye<arma::mat>(nstate,nstate);
+    //Rcpp::Rcout<<identity<<std::endl;
+    //double tempsum;
+    //int a,b;
+    
+    for(i=0; i<nstate; i++){
+        for(j=0; j<nstate; j++){
+            for(k=0; k<ndelta; k++){
+                tempint = matrixintegral(Q, udiff(k), i, j)  ;
+                pkl = matrixexp(Q, udiff(k));
+                
+                //tempvec = rowsum(pkl);
+                //for(l=0;l<nstate;l++){
+                //    for(m=0;m<nstate;m++){
+                //        pkl(l,m) = pkl(l,m) / tempvec(l);
+                //    }
+                //}
+                
+                di = tempint / pkl;
+                //Rcpp::Rcout<<di<<std::endl;
+                tempvec = C.row(k).t();
+                cmat = vec2mat(tempvec, nstate, nstate, 0);
+                
+                if(j==i){
+                    //tau_i
+                    countmat(i,j) += matrixsum(cmat,di);
+                }
+                else{
+                    //n_ij
+                    countmat(i,j) += Q(i,j) * matrixsum(cmat,di);
+                }
+            }
+        }
+    }
+    
+    /*
+     for(i=0; i<nstate; i++){
+     tempsum = 0;
+     for(j=0; j<nstate; j++){
+     if(i!=j){
+     result(i,j) = countmat(i,j) / countmat(i,i);
+     tempsum += result(i,j);
+     }
+     }
+     for(j=0; j<nstate;j++){
+     if(i==j) result(i,j) = -tempsum;
+     }
+     }
+     */
+    return countmat;
+}
+
+//////////////////////////////////////////////////////////////////////
+// [[Rcpp::export]]
+Rcpp::List fb_cont(arma::vec Pi, arma::mat P, arma::mat nodeprob,
+                   long dim, arma::vec ntimes, arma::vec timeindex,
+                   arma::vec udiff, arma::cube expms){
+    
+    
+    int M = nodeprob.n_cols;
+    int n = ntimes.n_rows;
+    int j,m,t,i,k,location;
+    double interval;
+    arma::mat transit(M,M);
+    double tempsum;
+    arma::vec tempval;
+    arma::mat tempmat(1,M);
+    arma::mat tempmat2(M,M);
+    
+    arma::mat alpha(dim, M);
+    arma::vec scale(dim);
+    arma::mat beta(dim, M);
+    arma::mat Gamma(dim, M);
+    /*when multiple series, rows in between will be zeros
+     for safety reasons, avoid multiple series.*/
+    arma::mat xi(dim-1, M*M);
+    
+    arma::vec colsumgamma(M);
+    arma::vec tempsumxi(M*M);
+    arma::mat colsumxi(M,M);
+    double loglik = 0;
+    
+    int count = 0;
+    for(j=0; j<n; j++){
+        
+        //forward probs
+        alpha.row(count) = Pi.t() % nodeprob.row(count);
+        tempval = nodeprob.row(count) * Pi;
+        scale(count) = tempval(0);//double
+        for(m=0; m<M; m++) alpha(count, m) = alpha(count,m) / scale(count);
+        
+        for(t=1; t<ntimes(j); t++){
+            
+            interval = timeindex(count+t) - timeindex(count+t-1);
+            location = locate(interval, udiff);
+            transit = expms.slice(location);
+            
+            tempmat = alpha.row(count+t-1) * transit; //row matrix
+            alpha.row(count+t) = tempmat % nodeprob.row(count+t);
+            tempval = tempmat * nodeprob.row(count+t).t();
+            scale(count+t) = tempval(0);//double
+            for(m=0; m<M; m++) alpha(count+t, m) = alpha(count+t,m) / scale(count+t);
+        }
+        
+        //backward probs and state conditional probs
+        for(m=0; m<M; m++) beta(count + ntimes(j) - 1,m) = 1 / (M * scale(count + ntimes(j) - 1));
+        Gamma.row(count+ntimes(j)-1) = alpha.row(count+ntimes(j)-1) % beta.row(count+ntimes(j)-1);
+        tempval = alpha.row(count+ntimes(j)-1) * beta.row(count+ntimes(j)-1).t();
+        for(m=0; m<M; m++) Gamma(count+ntimes(j)-1,m)=Gamma(count+ntimes(j)-1,m)/tempval(0); //double
+        
+        for(t=ntimes(j)-2; t>=0; t--){
+            interval = timeindex(count+t+1) - timeindex(count+t);
+            location = locate(interval, udiff);
+            transit = expms.slice(location);
+            
+            tempmat = beta.row(count+t+1) % nodeprob.row(count+t+1);
+            beta.row(count+t) = tempmat * transit.t();
+            for(m=0; m<M; m++) beta(count+t,m) = beta(count+t,m) / scale(count + t);
+            
+            Gamma.row(count+t) = alpha.row(count+t) % beta.row(count+t);
+            tempval = alpha.row(count+t) * beta.row(count+t).t();
+            for(m=0; m<M; m++) Gamma(count+t,m)=Gamma(count+t,m)/tempval(0); //double
+        }
+        
+        //transition probs
+        for(t=0; t<ntimes(j)-1; t++){
+            interval = timeindex(count+t+1) - timeindex(count+t);
+            location = locate(interval, udiff);
+            transit = expms.slice(location);
+            
+            tempmat = beta.row(count+t+1) % nodeprob.row(count+t+1);
+            tempmat2 = transit % (alpha.row(count+t).t() * tempmat);
+            
+            tempsum = 0;
+            for(i=0; i<M; i++){
+                for(k=0; k<M; k++){
+                    xi(count+t, i + k*M) = tempmat2(i,k);
+                    tempsum += xi(count+t, i + k*M);
+                }
+            }
+            //Rcpp::Rcout<<count+t<<std::endl;
+            for(m=0; m<M*M; m++) xi(count+t, m) = xi(count+t, m) / tempsum;
+        }
+        
+        count += ntimes(j);
+    }
+    
+    
+    //get the column sums
+    colsumgamma = colsum(Gamma);
+    tempsumxi = colsum(xi);
+    
+    for(i=0; i<M; i++)
+        for(k=0; k<M; k++)
+            colsumxi(i,k) = tempsumxi(i+k*M);
+    
+    loglik = arma::sum(log(scale));
+
+    return Rcpp::List::create(Rcpp::Named("colsumgamma")=colsumgamma,
+                              Rcpp::Named("colsumxi")=colsumxi,
+                              Rcpp::Named("Gamma")=Gamma,
+                              Rcpp::Named("xi")=xi,
+                              Rcpp::Named("loglik")=loglik);
+}
+
+
+
+//[[Rcpp::export]]
+arma::mat hmm_gen_cont (int dim, int M, arma::vec pi, arma::mat a, arma::vec theta,
+                        arma::vec zeroprop, arma::vec timeindex){
+    
+    int m,n, prev, curr;
+    arma::vec label(M);
+    double u;
+    double interval;
+    arma::mat transit(M,M);
+    arma::mat result(dim, 2); /*first column for x, second column for state*/
+    
+    for(m=0;m<M;m++) label(m) = m+1;
+    
+    
+    //starting generation
+    
+        result(0,1) = multinomrand(1, M, pi, label)(0);
+        
+        curr = result(0,1) - 1;
+        u = Rcpp::runif(1,0,1)(0);
+        if(u<=zeroprop(curr)) result(0,0) = 0;
+        else result(0,0) = Rcpp::rpois(1, theta(curr))(0);
+        
+    
+    
+    //iteration
+    for(n=1; n<dim; n++){
+        interval = timeindex(n) - timeindex(n-1);
+        transit = matrixexp(a, interval);
+            prev = result(n-1, 1) - 1;
+            result(n,1) = multinomrand(1, M, transit.row(prev).t(), label)(0);  //row to column vetor
+            
+            curr = result(n,1) - 1;
+            u = Rcpp::runif(1,0,1)(0);
+            if(u<=zeroprop(curr)) result(n,0) = 0;
+            else result(n,0) = Rcpp::rpois(1, theta(curr))(0);
+ 
+    }
+    
+    return(result);
+}
+
+////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////////
+// [[Rcpp::export]]
+double ziploglik_nocov_cont(arma::vec delta, arma::mat gamma, double theta, arma::vec lambda,
+                            arma::vec y, arma::vec ntimes, arma::vec timeindex, arma::vec udiff,
+                            arma::cube expms){
+    double loglik = 0;
+    //long dim = y.n_rows;
+    int M = lambda.n_rows;
+    int n = ntimes.n_rows;
+    int j,m,t;
+    double tempsum;
+    
+    arma::vec forward(M);
+    arma::vec meanvec(M);
+    arma::vec forwardsum;  //then forwardsum(0) is double
+    arma::mat tempmat(1,M);
+    arma::mat transit(M,M);
+    int count = 0, location, interval;
+    
+    for(j=0; j<n; j++){
+        
+        tempsum = 0;
+        //initialize the forward variable
+        meanvec(0) = dzip(theta, lambda(0), y(count), FALSE);
+        for(m=1; m<M; m++) meanvec(m) = R::dpois(y(count), lambda(m), FALSE);
+        
+        forward = delta % meanvec; //element wise multiplication
+        forwardsum = delta.t() * meanvec;
+        tempsum = log(forwardsum(0));
+        //Rcpp::Rcout << "loglik=" << loglik << std::endl;
+        
+        for(m=0; m<M; m++) forward(m) = forward(m) / forwardsum(0);
+        
+        //recursion
+        for(t=1; t<ntimes(j); t++){
+            
+            meanvec(0) = dzip(theta, lambda(0), y(count+t), FALSE);
+            for(m=1; m<M; m++) meanvec(m) = R::dpois(y(count+t), lambda(m), FALSE);
+            interval = timeindex(count+t) - timeindex(count+t-1);
+            location = locate(interval, udiff);
+            transit = expms.slice(location);
+            
+            tempmat = forward.t() * transit; //row matrix
+            forward = tempmat.t() % meanvec;
+            forwardsum = tempmat * meanvec;
+            tempsum += log(forwardsum(0));
+            for(m=0; m<M; m++) forward(m) = forward(m) / forwardsum(0);
+        }
+        
+        loglik += tempsum;
+        count += ntimes(j);
+        
+    }
+    
+    return loglik;
+    
+}
+
+///////////////////////////////////
+// [[Rcpp::export]]
+Rcpp::List retrieve_nocov_cont(arma::vec parm, int M){
+    int nextindex = 0;
+    arma::vec delta(M);
+    arma::mat gamma(M,M);
+    double theta;
+    arma::vec lambda(M);
+    int i, j, m;
+    double tempsum;
+    
+    //retrieve the full parameters
+    delta(0) = 1;
+    tempsum = 1;
+    for(m=1; m<M; m++) {
+        delta(m) = exp(parm(m-1));
+        tempsum += delta(m);
+    }
+    for(m=0; m<M; m++) delta(m) = delta(m) / tempsum;
+    
+    nextindex = M-1;
+    for(i=0; i<M; i++){
+        tempsum = 0;
+        for(j=0; j<M; j++){
+            if(i!=j){
+                gamma(i,j) = exp(parm(nextindex)) / (1+exp(parm(nextindex)));
+                tempsum += gamma(i,j);
+                nextindex ++;
+            }
+        }
+        gamma(i,i) = -tempsum;
+    }
+    
+    nextindex = M*M-1;
+    theta = exp(parm(nextindex))/(1+exp(parm(nextindex)));
+    
+    for(m=0; m<M; m++) lambda(m) = exp(parm(nextindex+m+1));
+    
+    return Rcpp::List::create(Rcpp::Named("delta")=delta,
+                              Rcpp::Named("gamma")=gamma,
+                              Rcpp::Named("theta")=theta,
+                              Rcpp::Named("lambda")=lambda);
+    
+}
+
+//////////////////////////////////////////////////////////////////////////////////
+// [[Rcpp::export]]
+double zipnegloglik_nocov_cont(arma::vec parm, int M, arma::vec y, arma::vec ntimes,
+                               arma::vec timeindex, arma::vec udiff){
+    
+    Rcpp::List mod = retrieve_nocov_cont(parm,M);
+    arma::vec delta = mod("delta");
+    arma::mat gamma = mod("gamma");
+    double theta = mod("theta");
+    arma::vec lambda = mod("lambda");
+    
+    arma::cube expms = getallexpm(gamma, udiff);
+                                  
+    double negloglik = - ziploglik_nocov_cont(delta, gamma, theta, lambda, y, ntimes,
+                                              timeindex,udiff,expms);
+    return negloglik;
+}
+
+
+////////////////////////////////////////////////////
+// [[Rcpp::export]]
+arma::vec grad_ziploglik_nocov_cont(arma::vec delta, arma::mat gamma, double theta, arma::vec lambda,
+                                    arma::vec y, arma::vec ntimes, arma::vec timeindex,
+                                    arma::vec udiff, arma::cube expms){
+    
+    long dim = y.n_rows;
+    int M = lambda.n_rows;
+    int n = ntimes.n_rows;
+    int i,j,m,t,k;
+    arma::mat nodeprob(dim, M);
+
+    int count = 0;
+    for(j=0; j<n; j++){
+        for(t=0; t<ntimes(j); t++){
+            nodeprob(count+t,0) = dzip(theta, lambda(0), y(count+t), FALSE);
+            for(m=1; m<M; m++) nodeprob(count+t,m) = R::dpois(y(count+t), lambda(m), FALSE);
+        }
+        count += ntimes(j);
+    }
+    
+    Rcpp::List fb = fb_cont(delta, gamma, nodeprob, dim, ntimes, timeindex, udiff, expms);
+    arma::mat Gamma = fb("Gamma");
+    arma::vec colsumgamma = fb("colsumgamma");
+    arma::mat xi = fb("xi");
+    //arma::mat xi = fb("xi");
+    
+    //get the derivatives
+    //prior
+    arma::vec temppi(M);
+    arma::vec dlogitpi(M);
+    
+    for(m=0; m<M; m++) temppi(m) = 0;
+    count = 0;
+    for(j=0; j<n; j++){
+        for(m=0; m<M; m++) temppi(m) += Gamma(count,m);
+        count += ntimes(j);
+    }
+    
+    for(m=0; m<M; m++) {
+        temppi(m) = temppi(m) / n;
+        dlogitpi(m) = temppi(m) - delta(m);
+    }
+    
+    
+    //tpm
+    arma::vec vdiff(dim-1);
+    for(t=0; t<dim-1; t++) vdiff(t) = timeindex(t+1) - timeindex(t);
+    arma::mat C = get_c(xi, vdiff, udiff );
+    arma::mat countmat = get_taun(gamma, udiff, C);
+
+    arma::mat dlogtrans(M,M);
+    for(i=0; i<M; i++)
+        for(k=0; k<M; k++)
+            dlogtrans(i,k) = (1-gamma(i,k))*(countmat(i,k) - countmat(i,i)*gamma(i,k));
+            //dlogtrans(i,k) = countmat(i,k) - countmat(i,i) * gamma(i,k);
+    
+    
+    //theta and lambda
+    double dlogtheta = 0;
+    arma::vec dloglambda(M);
+    for(m=0; m<M; m++) dloglambda(m) = 0;
+    
+    for(t=0; t<dim; t++){
+        
+        if(y(t)>0){
+            dlogtheta -= theta * Gamma(t,0);
+            dloglambda(0) += Gamma(t,0) * (y(t) - lambda(0));
+        }
+        else{
+            dlogtheta -= Gamma(t,0)*theta*(1-theta)*(exp(-lambda(0))-1) / (theta+(1-theta)*exp(-lambda(0)));
+            dloglambda(0) += Gamma(t,0)*(theta-1)*lambda(0)*exp(-lambda(0)) / (theta+(1-theta)*exp(-lambda(0)));
+        }
+        
+        for(m=1; m<M; m++){
+            dloglambda(m) += Gamma(t,m)*(y(t) - lambda(m));
+        }
+    }
+    
+    
+    arma::vec result(M-1+M*(M-1)+1+M);
+    int nextindex = 0;
+    for(j=0; j<M-1; j++) result(j) = dlogitpi(j+1);
+    nextindex = M - 1;
+    for(i=0; i<M; i++){
+        for(j=0; j<M; j++){
+            if(j!=i){
+                result(nextindex) = dlogtrans(i,j);
+                nextindex++;
+            }
+        }
+    }
+    
+    result(nextindex) = dlogtheta;
+    nextindex += 1;
+    for(i=0; i<M; i++) result(nextindex+i) = dloglambda(i);
+    
+    return result;
+    
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////
+// [[Rcpp::export]]
+arma::vec grad_zipnegloglik_nocov_cont(arma::vec parm, int M, arma::vec y, arma::vec ntimes,
+                                       arma::vec timeindex,arma::vec udiff){
+    
+    Rcpp::List mod = retrieve_nocov_cont(parm,M);
+    arma::vec delta = mod("delta");
+    arma::mat gamma = mod("gamma");
+    double theta = mod("theta");
+    arma::vec lambda = mod("lambda");
+    
+    arma::cube expms = getallexpm(gamma, udiff);
+    
+    ////change to negative !!!!!!
+    arma::vec result = grad_ziploglik_nocov_cont(delta, gamma, theta, lambda, y, ntimes,
+                                            timeindex,udiff, expms);
+    int m;
+    for(m=0; m<M-1+M*(M-1)+1+M; m++) result(m) = -result(m);
+    return result;
+}
+
+////////////////////////////////////////
+// [[Rcpp::export]]
+arma::vec hmm_viterbi_cont(arma::vec pi, arma::mat a, arma::vec theta, int M, arma::vec y,
+                           arma::vec zeroprop, arma::vec timeindex, arma::vec udiff, arma::cube expms){
+    
+    long dim = y.n_rows;
+    int i,j,m,n, location;
+    double colmax, interval;
+    
+    arma::vec meanvec(M);
+    arma::vec forward(M);
+    arma::vec forwardsum;
+    arma::vec state(dim);
+    arma::vec tempmax(M);
+    arma::mat xi(dim, M);
+    arma::mat tempmat(M,M);
+    arma::mat transit(M,M);
+    
+    //initialize the forward variable
+    
+    for(m=0; m<M; m++) meanvec(m) = dzip(zeroprop(m), theta(m), y(0), FALSE);
+    
+    forward = pi % meanvec; //element wise multiplication
+    forwardsum = pi.t() * meanvec;
+    for(m=0; m<M; m++) xi(0,m) = forward(m) / forwardsum(0);
+    
+    //recursion
+    for(n=1; n<dim; n++){
+        
+        for(m=0; m<M; m++) meanvec(m) = dzip(zeroprop(m), theta(m), y(n), FALSE);
+        
+        interval = timeindex(n) - timeindex(n-1);
+        location = locate(interval, udiff);
+        transit = expms.slice(location);
+        
+        //difficult part
+        for(i=0; i<M; i++){
+            for(j=0;j<M;j++){
+                tempmat(i,j) = xi(n-1, i) * transit(i,j);
+            }
+        }
+        
+        for(j=0; j<M; j++){
+            for(i=0;i<M;i++){
+                if(i==0) colmax = tempmat(i,j);
+                else colmax = MAX(colmax, tempmat(i,j));
+            }
+            tempmax(j) = colmax;
+        }
+        
+        
+        forward = tempmax % meanvec;
+        forwardsum = tempmax.t() * meanvec;
+        for(m=0; m<M; m++) xi(n,m) = forward(m) / forwardsum(0);
+    }
+    
+    //termination
+    for(m=0; m<M; m++){
+        if(m==0) {
+            colmax = xi(dim-1, m);
+            state(dim-1) = m;
+        }
+        else{
+            if(xi(dim-1,m) >= colmax) {
+                state(dim-1) = m;
+                colmax = xi(dim-1,m);
+            }
+        }
+    }
+    
+    //backtracking
+    for(n=dim-2; n>=0; n--){
+        
+        for(m=0;m<M;m++){
+            interval = timeindex(n+1) - timeindex(n);
+            location = locate(interval, udiff);
+            transit = expms.slice(location);
+
+            if(m==0) {
+                colmax = xi(n,m) * transit(m, state(n+1));
+                state(n) = m;
+            }
+            else{
+                if(xi(n,m) * transit(m, state(n+1))>=colmax) {
+                    state(n) = m;
+                    colmax = xi(n,m) * transit(m, state(n+1));
+                }
+            }
+        }
+    }
+    
+    for(n=0; n<dim; n++) state(n) = state(n) + 1;
+    return(state);
+}
+
+
+///////////////////////////////////////////
+//[[Rcpp::export]]
+arma::mat hmm_cov_gen_cont (arma::vec parm, int M, long dim, int ncolcovpi, arma::mat covpi,
+                       int ncolcovtrans, arma::mat covtrans, int ncolcovp1, arma::mat covp1,
+                       int ncolcovpois, arma::mat covpois, arma::vec zeroindex, arma::vec timeindex){
+    
+    int i,j,m,n,nextindex,prev,curr;
+    double tempsum, u, interval;
+    arma::vec label(M);
+    
+    arma::mat result(dim, 2); /*first column for x, second column for state*/
+    
+    arma::mat transit(M,M);
+    arma::vec pi(M);
+    arma::mat a(M,M);
+    arma::vec theta(M);
+    arma::vec zeroprop(M);
+    
+    //retrieve the full parameters
+    //prior
+    nextindex=0;
+    pi(0) = 1;
+    tempsum = 1;
+    for(m=1; m<M; m++){
+        pi(m) = parm(nextindex);
+        
+        for(j=0;j<ncolcovpi;j++)
+            pi(m) += parm(nextindex+j+1)*covpi(0,j) ;
+        
+        pi(m) = exp(pi(m));
+        
+        tempsum += pi(m);
+        nextindex = nextindex + ncolcovpi + 1;
+    }
+    
+    for(m=0; m<M; m++) pi(m) = pi(m) / tempsum;
+    
+    
+    //transition
+    for(i=0; i<M; i++){
+        tempsum = 0;
+        for(j=0; j<M; j++){
+            if(i!=j){
+                a(i,j) = exp(parm(nextindex))/(1+exp(parm(nextindex)));
+                tempsum += a(i,j);
+                nextindex++;
+            }
+        }
+        a(i,i) = -tempsum;
+        
+    }
+    
+    
+    for(i=0;i<M;i++){
+        if(zeroindex(i)==0) zeroprop(i)=0;
+        else{
+            zeroprop(i) = parm(nextindex);
+            
+            for(m=0;m<ncolcovp1;m++)
+                zeroprop(i) += parm(nextindex+m+1) * covp1(0,m);
+            
+            zeroprop(i) = exp(zeroprop(i))/(1+exp(zeroprop(i)));
+            nextindex = nextindex + ncolcovp1 + 1;
+        }
+    }
+    
+    //Rcpp::Rcout << "p1=" << p1 << std::endl;
+    
+    for(m=0; m<M; m++){
+        theta(m) = parm(nextindex);
+        for(j=0; j<ncolcovpois;j++){
+            theta(m) += parm(nextindex+j+1) * covpois(0,j);
+        }
+        theta(m) = exp(theta(m));
+        nextindex = nextindex + ncolcovpois + 1;
+    }
+    
+    
+    //start generation
+    
+    for(m=0;m<M;m++) label(m) = m+1;
+    
+    result(0,1) = multinomrand(1, M, pi, label)(0);
+    curr = result(0,1) - 1;
+    u = Rcpp::runif(1,0,1)(0);
+    if(u<=zeroprop(curr)) result(0,0) = 0;
+    else result(0,0) = Rcpp::rpois(1, theta(curr))(0);
+    
+    
+    
+    //iteration steps
+    for(n=1; n<dim; n++){
+        
+        //still need to retrieve the natural parameters
+        nextindex=0;
+        pi(0) = 1;
+        tempsum = 1;
+        for(m=1; m<M; m++){
+            pi(m) = parm(nextindex);
+            
+            for(j=0;j<ncolcovpi;j++)
+                pi(m) += parm(nextindex+j+1)*covpi(n,j) ;
+            
+            pi(m) = exp(pi(m));
+            
+            tempsum += pi(m);
+            nextindex = nextindex + ncolcovpi + 1;
+        }
+        
+        for(m=0; m<M; m++) pi(m) = pi(m) / tempsum;
+        
+        
+        //transition
+        for(i=0; i<M; i++){
+            tempsum = 0;
+            for(j=0; j<M; j++){
+                if(i!=j){
+                    a(i,j) = exp(parm(nextindex))/(1+exp(parm(nextindex)));
+                    tempsum += a(i,j);
+                    nextindex++;
+                }
+            }
+            a(i,i) = -tempsum;
+            
+        }
+        
+        for(i=0;i<M;i++){
+            if(zeroindex(i)==0) zeroprop(i)=0;
+            else{
+                zeroprop(i) = parm(nextindex);
+                
+                for(m=0;m<ncolcovp1;m++)
+                    zeroprop(i) += parm(nextindex+m+1) * covp1(n,m);
+                
+                zeroprop(i) = exp(zeroprop(i))/(1+exp(zeroprop(i)));
+                nextindex = nextindex + ncolcovp1 + 1;
+            }
+        }
+        //Rcpp::Rcout << "p1=" << p1 << std::endl;
+        
+        for(m=0; m<M; m++){
+            theta(m) = parm(nextindex);
+            for(j=0; j<ncolcovpois;j++){
+                theta(m) += parm(nextindex+j+1) * covpois(n,j);
+            }
+            theta(m) = exp(theta(m));
+            nextindex = nextindex + ncolcovpois + 1;
+        }
+        
+        interval = timeindex(n) - timeindex(n-1);
+        transit = matrixexp(a, interval);
+        prev = result(n-1, 1) - 1;
+        result(n,1) = multinomrand(1, M, transit.row(prev).t(), label)(0);  //row to column vetor
+        
+        curr = result(n,1) - 1;
+        u = Rcpp::runif(1,0,1)(0);
+        if(u<=zeroprop(curr)) result(n,0) = 0;
+        else result(n,0) = Rcpp::rpois(1, theta(curr))(0);
+  
+    }
+    
+    return result;
+    
+}
+
+
+
+////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+// [[Rcpp::export]]
+double ziploglik_cov_cont(arma::vec delta, arma::mat gamma, arma::vec thetaparm, arma::mat lambdaparm,
+                          arma::vec y, arma::mat x, arma::vec ntimes,
+                          arma::vec timeindex, arma::vec udiff, arma::cube expms){
+    //the first column of x should be 1 for intercept
+    double loglik = 0, interval;
+    //long dim = y.n_rows;
+    int M = gamma.n_rows;
+    int n = ntimes.n_rows;
+    int j,m,t,location;
+    arma::vec tempval;
+    double tempsum;
+    double theta;
+    arma::vec lambda(M);
+    arma::mat transit(M,M);
+    
+    arma::vec forward(M);
+    arma::vec meanvec(M);
+    arma::vec forwardsum;  //then forwardsum(0) is double
+    arma::mat tempmat(1,M);
+    
+    int count = 0;
+    
+    for(j=0; j<n; j++){
+        
+        tempsum = 0;
+        
+        //initialize the forward variable
+        tempval = x.row(count) * thetaparm;
+        theta = exp(tempval(0))/(1+exp(tempval(0)));
+        for(m=0;m<M;m++) {
+            tempval = x.row(count) * lambdaparm.row(m).t();
+            lambda(m) = exp(tempval(0));
+        }
+        
+        meanvec(0) = dzip(theta, lambda(0), y(count), FALSE);
+        for(m=1; m<M; m++) meanvec(m) = R::dpois(y(count), lambda(m), FALSE);
+        
+        forward = delta % meanvec; //element wise multiplication
+        forwardsum = delta.t() * meanvec;
+        tempsum = log(forwardsum(0));
+        //Rcpp::Rcout << "loglik=" << loglik << std::endl;
+        
+        for(m=0; m<M; m++) forward(m) = forward(m) / forwardsum(0);
+        
+        //recursion
+        for(t=1; t<ntimes(j); t++){
+            
+            tempval = x.row(count+t) * thetaparm;
+            theta = exp(tempval(0))/(1+exp(tempval(0)));
+            for(m=0;m<M;m++) {
+                tempval = x.row(count+t) * lambdaparm.row(m).t();
+                lambda(m) = exp(tempval(0));
+            }
+            
+            meanvec(0) = dzip(theta, lambda(0), y(count+t), FALSE);
+            for(m=1; m<M; m++) meanvec(m) = R::dpois(y(count+t), lambda(m), FALSE);
+            
+            interval = timeindex(count+t) - timeindex(count+t-1);
+            location = locate(interval, udiff);
+            transit = expms.slice(location);
+            
+            tempmat = forward.t() * transit; //row matrix
+            forward = tempmat.t() % meanvec;
+            forwardsum = tempmat * meanvec;
+            tempsum += log(forwardsum(0));
+            for(m=0; m<M; m++) forward(m) = forward(m) / forwardsum(0);
+        }
+        
+        loglik += tempsum;
+        count += ntimes(j);
+        
+    }
+    
+    return loglik;
+    
+}
+
+///////////////////////////////////
+// [[Rcpp::export]]
+Rcpp::List retrieve_cov_cont(arma::vec parm, int M, int ncolx){
+    int nextindex = 0;
+    arma::vec delta(M);
+    arma::mat gamma(M,M);
+    arma::vec thetaparm(ncolx);
+    arma::mat lambdaparm(M,ncolx);
+    int i, j, m;
+    double tempsum;
+    
+    //retrieve the full parameters
+    delta(0) = 1;
+    tempsum = 1;
+    for(m=1; m<M; m++) {
+        delta(m) = exp(parm(m-1));
+        tempsum += delta(m);
+    }
+    for(m=0; m<M; m++) delta(m) = delta(m) / tempsum;
+    
+    nextindex = M-1;
+    for(i=0; i<M; i++){
+        tempsum = 0;
+        for(j=0; j<M; j++){
+            if(i!=j){
+                gamma(i,j) = exp(parm(nextindex)) / (1+exp(parm(nextindex)));
+                tempsum += gamma(i,j);
+                nextindex ++;
+            }
+        }
+        gamma(i,i) = -tempsum;
+    }
+    
+    for(i=0; i<ncolx; i++) thetaparm(i) = parm(nextindex+i);
+    nextindex += ncolx;
+    
+    for(i=0; i<M; i++){
+        for(j=0; j<ncolx; j++){
+            lambdaparm(i,j) = parm(nextindex + i*ncolx + j);
+        }
+    }
+    
+    return Rcpp::List::create(Rcpp::Named("delta")=delta,
+                              Rcpp::Named("gamma")=gamma,
+                              Rcpp::Named("thetaparm")=thetaparm,
+                              Rcpp::Named("lambdaparm")=lambdaparm);
+    
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////
+// [[Rcpp::export]]
+double zipnegloglik_cov_cont(arma::vec parm, arma::vec y, arma::mat covariates, int M, arma::vec ntimes,
+                             arma::vec timeindex, arma::vec udiff){
+    int ncolx = covariates.n_cols;
+    Rcpp::List mod = retrieve_cov_cont(parm,M,ncolx);
+    arma::vec delta = mod("delta");
+    arma::mat gamma = mod("gamma");
+    arma::vec thetaparm = mod("thetaparm");
+    arma::mat lambdaparm = mod("lambdaparm");
+    arma::cube expms = getallexpm(gamma, udiff);
+    
+    double negloglik = - ziploglik_cov_cont(delta, gamma, thetaparm, lambdaparm, y, covariates, ntimes,
+                                            timeindex, udiff, expms);
+    return negloglik;
+}
+
+
+////////////////////////////////////////////////////
+// [[Rcpp::export]]
+arma::vec grad_ziploglik_cov_cont(arma::vec delta, arma::mat gamma, arma::vec thetaparm, arma::mat lambdaparm,
+                                  arma::vec y, arma::mat x, arma::vec ntimes, arma::vec timeindex,
+                                  arma::vec udiff, arma::cube expms){
+    
+    long dim = y.n_rows;
+    int ncolx = x.n_cols;
+    int M = gamma.n_rows;
+    int n = ntimes.n_rows;
+    int i,j,m,t,k;
+    double theta;
+    arma::vec tempval;
+    arma::vec lambda(M);
+    arma::mat nodeprob(dim, M);
+    
+    
+    int count = 0;
+    for(j=0; j<n; j++){
+        for(t=0; t<ntimes(j); t++){
+            tempval = x.row(count+t) * thetaparm;
+            theta = exp(tempval(0))/(1+exp(tempval(0)));
+            for(m=0;m<M;m++) {
+                tempval = x.row(count+t) * lambdaparm.row(m).t();
+                lambda(m) = exp(tempval(0));
+            }
+            
+            nodeprob(count+t,0) = dzip(theta, lambda(0), y(count+t), FALSE);
+            for(m=1; m<M; m++) nodeprob(count+t,m) = R::dpois(y(count+t), lambda(m), FALSE);
+        }
+        count += ntimes(j);
+    }
+    
+    
+    Rcpp::List fb = fb_cont(delta, gamma, nodeprob, dim, ntimes, timeindex, udiff, expms);
+    arma::mat Gamma = fb("Gamma");
+    arma::vec colsumgamma = fb("colsumgamma");
+    arma::mat colsumxi = fb("colsumxi");
+    arma::mat xi = fb("xi");
+    
+    //get the derivatives
+    //prior
+    arma::vec temppi(M);
+    arma::vec dlogitpi(M);
+    
+    for(m=0; m<M; m++) temppi(m) = 0;
+    count = 0;
+    for(j=0; j<n; j++){
+        for(m=0; m<M; m++) temppi(m) += Gamma(count,m);
+        count += ntimes(j);
+    }
+    
+    for(m=0; m<M; m++) {
+        temppi(m) = temppi(m) / n;
+        dlogitpi(m) = temppi(m) - delta(m);
+    }
+    
+    
+    //tpm
+    arma::vec vdiff(dim-1);
+    for(t=0; t<dim-1; t++) vdiff(t) = timeindex(t+1) - timeindex(t);
+    arma::mat C = get_c(xi, vdiff, udiff );
+    arma::mat countmat = get_taun(gamma, udiff, C);
+    
+    arma::mat dlogtrans(M,M);
+    for(i=0; i<M; i++)
+        for(k=0; k<M; k++)
+            dlogtrans(i,k) = (1-gamma(i,k))*(countmat(i,k) - countmat(i,i)*gamma(i,k));
+            //dlogtrans(i,k) = countmat(i,k) - countmat(i,i) * gamma(i,k);
+    
+    //theta and lambda
+    arma::vec dlogtheta(ncolx);
+    arma::mat dloglambda(M,ncolx);
+    for(m=0; m<ncolx; m++) dlogtheta(m) = 0;
+    for(i=0; i<M; i++)
+        for(j=0; j<ncolx; j++)
+            dloglambda(i,j) = 0;
+    
+    for(t=0; t<dim; t++){
+        
+        tempval = x.row(t) * thetaparm;
+        theta = exp(tempval(0))/(1+exp(tempval(0)));
+        for(m=0;m<M;m++) {
+            tempval = x.row(t) * lambdaparm.row(m).t();
+            lambda(m) = exp(tempval(0));
+        }
+        
+        if(y(t)>0){
+            for(i=0;i<ncolx;i++){
+                dlogtheta(i) -= theta * Gamma(t,0) * x(t,i) ;
+                dloglambda(0,i) += Gamma(t,0) * x(t,i) * (y(t) - lambda(0));
+            }
+        }
+        else{
+            for(i=0;i<ncolx;i++){
+                dlogtheta(i) -= Gamma(t,0)*x(t,i)*theta*(1-theta)*(exp(-lambda(0))-1) / (theta+(1-theta)*exp(-lambda(0)));
+                dloglambda(0,i) += Gamma(t,0)*x(t,i)*(theta-1)*lambda(0)*exp(-lambda(0)) / (theta+(1-theta)*exp(-lambda(0)));
+            }
+        }
+        
+        for(m=1; m<M; m++){
+            for(i=0;i<ncolx;i++){
+                dloglambda(m,i) += Gamma(t,m)*x(t,i)*(y(t) - lambda(m));
+            }
+        }
+    }
+    
+    ///////
+    arma::vec result(M-1+M*(M-1)+ncolx*(1+M));
+    int nextindex = 0;
+    for(j=0; j<M-1; j++) result(j) = dlogitpi(j+1);
+    nextindex = M - 1;
+    nextindex = M - 1;
+    for(i=0; i<M; i++){
+        for(j=0; j<M; j++){
+            if(j!=i){
+                result(nextindex) = dlogtrans(i,j);
+                nextindex++;
+            }
+        }
+    }
+
+    for(i=0; i<ncolx; i++)
+        result(nextindex+i) = dlogtheta(i);
+    
+    nextindex += ncolx;
+    for(i=0; i<M; i++)
+        for(j=0; j<ncolx; j++)
+            result(nextindex+i*ncolx+j) = dloglambda(i,j);
+    
+    
+    return result;
+    
+    
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////
+// [[Rcpp::export]]
+arma::vec grad_zipnegloglik_cov_cont(arma::vec parm, arma::vec y, arma::mat covariates, int M,
+                                     arma::vec ntimes, arma::vec timeindex, arma::vec udiff){
+    int ncolx = covariates.n_cols;
+    Rcpp::List mod = retrieve_cov_cont(parm,M,ncolx);
+    arma::vec delta = mod("delta");
+    arma::mat gamma = mod("gamma");
+    arma::vec thetaparm = mod("thetaparm");
+    arma::mat lambdaparm = mod("lambdaparm");
+    arma::cube expms = getallexpm(gamma, udiff);
+    
+    ////change to negative !!!!!!
+    arma::vec result = grad_ziploglik_cov_cont(delta, gamma, thetaparm, lambdaparm, y, covariates, ntimes,
+                                               timeindex, udiff, expms);
+    int m;
+    for(m=0; m<M-1+M*(M-1)+ncolx*(1+M); m++) result(m) = -result(m);
+    return result;
+}
+
+
+///////////////////////////////////////////////////////////
+/////////////////////////
+
+// [[Rcpp::export]]
+arma::vec hmm_cov_viterbi_cont(arma::vec parm, int M, arma::vec y, int ncolcovpi, arma::mat covpi,
+                          int ncolcovtrans, arma::mat covtrans, int ncolcovp1, arma::mat covp1,
+                          int ncolcovpois, arma::mat covpois, arma::vec zeroindex,
+                          arma::vec timeindex, arma::vec udiff, arma::cube expms){
+    
+    long dim = y.n_rows;
+    int i,j,m,n,nextindex, location;
+    double tempsum, colmax, interval;
+    
+    arma::vec pi(M);
+    arma::mat a(M,M);
+    arma::vec theta(M);
+    arma::vec zeroprop(M);
+    
+    arma::vec meanvec(M);
+    arma::vec forward(M);
+    arma::vec forwardsum;
+    arma::vec state(dim);
+    arma::vec tempmax(M);
+    arma::mat xi(dim, M);
+    arma::mat tempmat(M,M);
+    arma::mat transit(M,M);
+    //retrieve the full parameters
+    //prior
+    nextindex=0;
+    pi(0) = 1;
+    tempsum = 1;
+    for(m=1; m<M; m++){
+        pi(m) = parm(nextindex);
+        
+        for(j=0;j<ncolcovpi;j++)
+            pi(m) += parm(nextindex+j+1)*covpi(0,j) ;
+        
+        pi(m) = exp(pi(m));
+        
+        tempsum += pi(m);
+        nextindex = nextindex + ncolcovpi + 1;
+    }
+    
+    for(m=0; m<M; m++) pi(m) = pi(m) / tempsum;
+
+    //transition
+ 
+    for(i=0; i<M; i++){
+        tempsum = 0;
+        for(j=0; j<M; j++){
+            if(i!=j){
+                a(i,j) = exp(parm(nextindex))/(1+exp(parm(nextindex)));
+                tempsum += a(i,j);
+                nextindex++;
+            }
+        }
+        a(i,i) = -tempsum;
+        
+    }
+    
+    for(i=0;i<M;i++){
+        if(zeroindex(i)==0) zeroprop(i)=0;
+        else{
+            zeroprop(i) = parm(nextindex);
+            
+            for(m=0;m<ncolcovp1;m++)
+                zeroprop(i) += parm(nextindex+m+1) * covp1(0,m);
+            
+            zeroprop(i) = exp(zeroprop(i))/(1+exp(zeroprop(i)));
+            nextindex = nextindex + ncolcovp1 + 1;
+        }
+    }
+    
+    //Rcpp::Rcout << "p1=" << p1 << std::endl;
+    
+    for(m=0; m<M; m++){
+        theta(m) = parm(nextindex);
+        for(j=0; j<ncolcovpois;j++){
+            theta(m) += parm(nextindex+j+1) * covpois(0,j);
+        }
+        theta(m) = exp(theta(m));
+        nextindex = nextindex + ncolcovpois + 1;
+    }
+    
+    //Rcpp::Rcout << nextindex << std::endl;
+    
+    //initialize the forward variable
+    //check emit_dist
+    
+    for(m=0; m<M; m++) meanvec(m) = dzip(zeroprop(m), theta(m), y(0), FALSE);
+    
+    
+    forward = pi % meanvec; //element wise multiplication
+    forwardsum = pi.t() * meanvec;
+    for(m=0; m<M; m++) xi(0,m) = forward(m) / forwardsum(0);
+    
+    //recursion
+    for(n=1; n<dim; n++){
+        
+        nextindex = M * M - 1;
+        for(i=0;i<M;i++){
+            if(zeroindex(i)==0) zeroprop(i)=0;
+            else{
+                zeroprop(i) = parm(nextindex);
+                
+                for(m=0;m<ncolcovp1;m++)
+                    zeroprop(i) += parm(nextindex+m+1) * covp1(n,m);
+                
+                zeroprop(i) = exp(zeroprop(i))/(1+exp(zeroprop(i)));
+                nextindex = nextindex + ncolcovp1 + 1;
+            }
+        }
+        
+        //Rcpp::Rcout << "p1=" << p1 << std::endl;
+        
+        for(m=0; m<M; m++){
+            theta(m) = parm(nextindex);
+            for(j=0; j<ncolcovpois;j++){
+                theta(m) += parm(nextindex+j+1) * covpois(n,j);
+            }
+            theta(m) = exp(theta(m));
+            nextindex = nextindex + ncolcovpois + 1;
+        }
+        
+        
+        for(m=0; m<M; m++) meanvec(m) = dzip(zeroprop(m), theta(m), y(n), FALSE);
+        
+        
+        //difficult part
+        interval = timeindex(n) - timeindex(n-1);
+        location = locate(interval, udiff);
+        transit = expms.slice(location);
+        
+        for(i=0; i<M; i++){
+            for(j=0;j<M;j++){
+                tempmat(i,j) = xi(n-1, i) * transit(i,j);
+            }
+        }
+        
+        for(j=0; j<M; j++){
+            for(i=0;i<M;i++){
+                if(i==0) colmax = tempmat(i,j);
+                else colmax = MAX(colmax, tempmat(i,j));
+            }
+            tempmax(j) = colmax;
+        }
+        
+        
+        forward = tempmax % meanvec;
+        forwardsum = tempmax.t() * meanvec;
+        for(m=0; m<M; m++) xi(n,m) = forward(m) / forwardsum(0);
+    }
+    
+    //termination
+    for(m=0; m<M; m++){
+        if(m==0) {
+            colmax = xi(dim-1, m);
+            state(dim-1) = m;
+        }
+        else{
+            if(xi(dim-1,m) >= colmax) {
+                state(dim-1) = m;
+                colmax = xi(dim-1,m);
+            }
+        }
+    }
+    
+    //backtracking
+    for(n=dim-2; n>=0; n--){
+        
+        
+        interval = timeindex(n+1) - timeindex(n);
+        location = locate(interval, udiff);
+        transit = expms.slice(location);
+
+        
+        for(m=0;m<M;m++){
+            if(m==0) {
+                colmax = xi(n,m) * transit(m, state(n+1));
+                state(n) = m;
+            }
+            else{
+                if(xi(n,m) * transit(m, state(n+1))>=colmax) {
+                    state(n) = m;
+                    colmax = xi(n,m) * transit(m, state(n+1));
+                }
+            }
+        }
+    }
+    
+    for(n=0; n<dim; n++) state(n) = state(n) + 1;
+    return(state);
 }
 
 
