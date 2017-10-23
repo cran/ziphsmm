@@ -14,17 +14,25 @@
 /* .Call calls */
 extern SEXP ziphsmm_dzip(SEXP,SEXP,SEXP,SEXP);
 extern SEXP ziphsmm_rzip(SEXP,SEXP,SEXP);
-
-
+extern SEXP ziphsmm_zipnegloglik_nocov_cont(SEXP,SEXP,SEXP,SEXP,SEXP,SEXP);
+extern SEXP ziphsmm_grad_zipnegloglik_nocov_cont(SEXP,SEXP,SEXP,SEXP,SEXP,SEXP);
+extern SEXP ziphsmm_zipnegloglik_cov_cont(SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP);
+extern SEXP ziphsmm_grad_zipnegloglik_cov_cont(SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP);
+extern SEXP ziphsmm_retrieve_nocov_cont(SEXP,SEXP);
+extern SEXP ziphsmm_retrieve_cov_cont(SEXP,SEXP,SEXP);
 
 //extern SEXP RcppArmadillo_armadillo_version(SEXP);
 //extern SEXP RcppArmadillo_fastLm(SEXP, SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
-        //{"RcppArmadillo_armadillo_version",         (DL_FUNC) &RcppArmadillo_armadillo_version,         1},
-    //{"RcppArmadillo_fastLm",                    (DL_FUNC) &RcppArmadillo_fastLm,                    2},
     {"ziphsmm_dzip", (DL_FUNC) &ziphsmm_dzip, 4}, //number of parms
     {"ziphsmm_rzip", (DL_FUNC) &ziphsmm_rzip, 3},
+    {"ziphsmm_zipnegloglik_nocov_cont", (DL_FUNC) &ziphsmm_zipnegloglik_nocov_cont, 6},
+    {"ziphsmm_grad_zipnegloglik_nocov_cont", (DL_FUNC) &ziphsmm_grad_zipnegloglik_nocov_cont, 6},
+    {"ziphsmm_zipnegloglik_cov_cont", (DL_FUNC) &ziphsmm_zipnegloglik_cov_cont, 7},
+    {"ziphsmm_grad_zipnegloglik_cov_cont", (DL_FUNC) &ziphsmm_grad_zipnegloglik_cov_cont, 7},
+    {"ziphsmm_retrieve_nocov_cont", (DL_FUNC) &ziphsmm_retrieve_nocov_cont, 2},
+    {"ziphsmm_retrieve_cov_cont", (DL_FUNC) &ziphsmm_retrieve_cov_cont, 3},
     {NULL, NULL, 0}
 };
 

@@ -10,7 +10,7 @@
 \tabular{ll}{
 Package: \tab ziphsmm \cr
 Type: \tab Package\cr
-Version: \tab 1.0.7\cr
+Version: \tab 1.0.8\cr
 Date: \tab 2017-09-07\cr
 License: \tab GPL-2\cr
 LazyLoad: \tab yes\cr
@@ -20,7 +20,11 @@ LazyData: \tab yes\cr
 \author{
 Zekun Xu \email{zekunxu@gmail.com}
 
-Ye Liu \email{yliu87@ncsu.edu}
+Ye Liu
+
+Ana-Maria Staicu
+
+Eric Laber
 Maintainer: Zekun Xu \email{zekunxu@gmail.com}
 }
 \keyword{Markov}

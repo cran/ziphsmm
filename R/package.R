@@ -1,7 +1,7 @@
 #' \tabular{ll}{
 #' Package: \tab ziphsmm \cr
 #' Type: \tab Package\cr
-#' Version: \tab 1.0.7\cr
+#' Version: \tab 1.0.8\cr
 #' Date: \tab 2017-09-07\cr
 #' License: \tab GPL-2\cr
 #' LazyLoad: \tab yes\cr
@@ -9,7 +9,9 @@
 #' }
 #'
 #' @author Zekun Xu \email{zekunxu@gmail.com}
-#' @author Ye Liu \email{yliu87@ncsu.edu}
+#' @author Ye Liu
+#' @author Ana-Maria Staicu
+#' @author Eric Laber
 #' Maintainer: Zekun Xu \email{zekunxu@gmail.com}
 #' @name package-ziphsmm
 #' @aliases ziphsmm-package
@@ -24,6 +26,7 @@ NULL
 #' @importFrom Rcpp evalCpp
 #' @importFrom graphics points
 #' @importFrom stats optim
+#' @importFrom stats runif
 
 #generalized logit and inverse logit function
 #1 / (1+sum(exp(x[-1]))) = p1

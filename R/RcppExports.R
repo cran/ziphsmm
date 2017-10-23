@@ -302,10 +302,26 @@ ziploglik_nocov_cont <- function(delta, gamma, theta, lambda, y, ntimes, timeind
     .Call('ziphsmm_ziploglik_nocov_cont', PACKAGE = 'ziphsmm', delta, gamma, theta, lambda, y, ntimes, timeindex, udiff, expms)
 }
 
+#' retrieve the natural parameters from working parameters for a continuous-time
+#' zero-inflated Poisson hidden Markov model where zero-inflation only happens in state 1
+#' @param parm working parameters
+#' @param M number of hidden states
+#' @return a list of natural parameters
+#' @export
 retrieve_nocov_cont <- function(parm, M) {
     .Call('ziphsmm_retrieve_nocov_cont', PACKAGE = 'ziphsmm', parm, M)
 }
 
+#' negative log likelihood function for zero-inflated Poisson hidden Markov model without covariates,
+#' where zero-inflation only happens in state 1
+#' @param parm working parameters
+#' @param M number of hidden states
+#' @param y observed series
+#' @param ntimes length of the observed series
+#' @param timeindex vector of observed time points
+#' @param udiff unique time intervals
+#' @return negative log likelihood
+#' @export
 zipnegloglik_nocov_cont <- function(parm, M, y, ntimes, timeindex, udiff) {
     .Call('ziphsmm_zipnegloglik_nocov_cont', PACKAGE = 'ziphsmm', parm, M, y, ntimes, timeindex, udiff)
 }
@@ -314,6 +330,16 @@ grad_ziploglik_nocov_cont <- function(delta, gamma, theta, lambda, y, ntimes, ti
     .Call('ziphsmm_grad_ziploglik_nocov_cont', PACKAGE = 'ziphsmm', delta, gamma, theta, lambda, y, ntimes, timeindex, udiff, expms)
 }
 
+#' gradient for negative log likelihood function from zero-inflated Poisson hidden Markov model
+#' without covariates, where zero-inflation only happens in state 1
+#' @param parm working parameters
+#' @param M number of hidden states
+#' @param y observed series
+#' @param ntimes length of the observed series
+#' @param timeindex vector of observed time points
+#' @param udiff unique time intervals
+#' @return gradient for negative log likelihood
+#' @export
 grad_zipnegloglik_nocov_cont <- function(parm, M, y, ntimes, timeindex, udiff) {
     .Call('ziphsmm_grad_zipnegloglik_nocov_cont', PACKAGE = 'ziphsmm', parm, M, y, ntimes, timeindex, udiff)
 }
@@ -330,10 +356,28 @@ ziploglik_cov_cont <- function(delta, gamma, thetaparm, lambdaparm, y, x, ntimes
     .Call('ziphsmm_ziploglik_cov_cont', PACKAGE = 'ziphsmm', delta, gamma, thetaparm, lambdaparm, y, x, ntimes, timeindex, udiff, expms)
 }
 
+#' retrieve the natural parameters from the working parameters in zero-inflated Poisson
+#' hidden Markov model with covariates, where zero-inflation only happens in state 1
+#' @param parm working parameters
+#' @param M number of hidden states
+#' @param ncolx number of covariates including the intercept
+#' @return a list of natural parameters
+#' @export
 retrieve_cov_cont <- function(parm, M, ncolx) {
     .Call('ziphsmm_retrieve_cov_cont', PACKAGE = 'ziphsmm', parm, M, ncolx)
 }
 
+#' negative log likelihood function for zero-inflated Poisson hidden Markov model with covariates,
+#' where zero-inflation only happens in state 1
+#' @param parm working parameters
+#' @param y observed series
+#' @param covariates design matrix of covariates including the intercept
+#' @param M number of hidden states
+#' @param ntimes length of the observed series
+#' @param timeindex vector of observed time points
+#' @param udiff unique time intervals
+#' @return negative log likelihood
+#' @export
 zipnegloglik_cov_cont <- function(parm, y, covariates, M, ntimes, timeindex, udiff) {
     .Call('ziphsmm_zipnegloglik_cov_cont', PACKAGE = 'ziphsmm', parm, y, covariates, M, ntimes, timeindex, udiff)
 }
@@ -342,6 +386,17 @@ grad_ziploglik_cov_cont <- function(delta, gamma, thetaparm, lambdaparm, y, x, n
     .Call('ziphsmm_grad_ziploglik_cov_cont', PACKAGE = 'ziphsmm', delta, gamma, thetaparm, lambdaparm, y, x, ntimes, timeindex, udiff, expms)
 }
 
+#' gradient for negative log likelihood function in zero-inflated Poisson hidden Markov model
+#' with covariates, where zero-inflation only happens in state 1
+#' @param parm working parameters
+#' @param y observed series
+#' @param covariates design matrix of covariates including the intercept
+#' @param M number of hidden states
+#' @param ntimes length of the observed series
+#' @param timeindex vector of observed time points
+#' @param udiff unique time intervals
+#' @return gradient for negative log likelihood
+#' @export
 grad_zipnegloglik_cov_cont <- function(parm, y, covariates, M, ntimes, timeindex, udiff) {
     .Call('ziphsmm_grad_zipnegloglik_cov_cont', PACKAGE = 'ziphsmm', parm, y, covariates, M, ntimes, timeindex, udiff)
 }

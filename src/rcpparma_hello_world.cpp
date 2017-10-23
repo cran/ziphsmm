@@ -6586,6 +6586,12 @@ double ziploglik_nocov_cont(arma::vec delta, arma::mat gamma, double theta, arma
 }
 
 ///////////////////////////////////
+//' retrieve the natural parameters from working parameters for a continuous-time
+//' zero-inflated Poisson hidden Markov model where zero-inflation only happens in state 1
+//' @param parm working parameters
+//' @param M number of hidden states
+//' @return a list of natural parameters
+//' @export
 // [[Rcpp::export]]
 Rcpp::List retrieve_nocov_cont(arma::vec parm, int M){
     int nextindex = 0;
@@ -6631,6 +6637,17 @@ Rcpp::List retrieve_nocov_cont(arma::vec parm, int M){
 }
 
 //////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////
+//' negative log likelihood function for zero-inflated Poisson hidden Markov model without covariates,
+//' where zero-inflation only happens in state 1
+//' @param parm working parameters
+//' @param M number of hidden states
+//' @param y observed series
+//' @param ntimes length of the observed series
+//' @param timeindex vector of observed time points
+//' @param udiff unique time intervals
+//' @return negative log likelihood
+//' @export
 // [[Rcpp::export]]
 double zipnegloglik_nocov_cont(arma::vec parm, int M, arma::vec y, arma::vec ntimes,
                                arma::vec timeindex, arma::vec udiff){
@@ -6752,6 +6769,16 @@ arma::vec grad_ziploglik_nocov_cont(arma::vec delta, arma::mat gamma, double the
 
 
 //////////////////////////////////////////////////////////////////////////////////
+//' gradient for negative log likelihood function from zero-inflated Poisson hidden Markov model
+//' without covariates, where zero-inflation only happens in state 1
+//' @param parm working parameters
+//' @param M number of hidden states
+//' @param y observed series
+//' @param ntimes length of the observed series
+//' @param timeindex vector of observed time points
+//' @param udiff unique time intervals
+//' @return gradient for negative log likelihood
+//' @export
 // [[Rcpp::export]]
 arma::vec grad_zipnegloglik_nocov_cont(arma::vec parm, int M, arma::vec y, arma::vec ntimes,
                                        arma::vec timeindex,arma::vec udiff){
@@ -7116,6 +7143,13 @@ double ziploglik_cov_cont(arma::vec delta, arma::mat gamma, arma::vec thetaparm,
 }
 
 ///////////////////////////////////
+//' retrieve the natural parameters from the working parameters in zero-inflated Poisson
+//' hidden Markov model with covariates, where zero-inflation only happens in state 1
+//' @param parm working parameters
+//' @param M number of hidden states
+//' @param ncolx number of covariates including the intercept
+//' @return a list of natural parameters
+//' @export
 // [[Rcpp::export]]
 Rcpp::List retrieve_cov_cont(arma::vec parm, int M, int ncolx){
     int nextindex = 0;
@@ -7166,6 +7200,17 @@ Rcpp::List retrieve_cov_cont(arma::vec parm, int M, int ncolx){
 
 
 //////////////////////////////////////////////////////////////////////////////////
+//' negative log likelihood function for zero-inflated Poisson hidden Markov model with covariates,
+//' where zero-inflation only happens in state 1
+//' @param parm working parameters
+//' @param y observed series
+//' @param covariates design matrix of covariates including the intercept
+//' @param M number of hidden states
+//' @param ntimes length of the observed series
+//' @param timeindex vector of observed time points
+//' @param udiff unique time intervals
+//' @return negative log likelihood
+//' @export
 // [[Rcpp::export]]
 double zipnegloglik_cov_cont(arma::vec parm, arma::vec y, arma::mat covariates, int M, arma::vec ntimes,
                              arma::vec timeindex, arma::vec udiff){
@@ -7321,6 +7366,17 @@ arma::vec grad_ziploglik_cov_cont(arma::vec delta, arma::mat gamma, arma::vec th
 
 
 //////////////////////////////////////////////////////////////////////////////////
+//' gradient for negative log likelihood function in zero-inflated Poisson hidden Markov model
+//' with covariates, where zero-inflation only happens in state 1
+//' @param parm working parameters
+//' @param y observed series
+//' @param covariates design matrix of covariates including the intercept
+//' @param M number of hidden states
+//' @param ntimes length of the observed series
+//' @param timeindex vector of observed time points
+//' @param udiff unique time intervals
+//' @return gradient for negative log likelihood
+//' @export
 // [[Rcpp::export]]
 arma::vec grad_zipnegloglik_cov_cont(arma::vec parm, arma::vec y, arma::mat covariates, int M,
                                      arma::vec ntimes, arma::vec timeindex, arma::vec udiff){
