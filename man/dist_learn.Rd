@@ -4,13 +4,14 @@
 \alias{dist_learn}
 \title{Distributed learning for a longitudinal continuous-time zero-inflated Poisson
 hidden Markov model, where zero-inflation only happens in State 1. Assume that
-prior, transition rate are subject-specific, but the state-dependent parameters
-are the same across subjects. A distributed learning algorithm
-is used to estimate the parameters.}
+priors, transition rates and state-dependent parameters can be subject-specific,
+clustered by group, or common. But at least one set of the parameters have to be 
+common across all subjects.}
 \usage{
 dist_learn(ylist, timelist, prior_init, tpm_init, emit_init, zero_init,
-  yceil = NULL, rho = 1, maxit = 100, tol = 1e-04, ncores = 1,
-  method = "CG", print = TRUE, libpath = NULL, ...)
+  yceil = NULL, rho = 1, priorclust = NULL, tpmclust = NULL,
+  emitclust = NULL, zeroclust = NULL, group, maxit = 100, tol = 1e-04,
+  ncores = 1, method = "CG", print = TRUE, libpath = NULL, ...)
 }
 \arguments{
 \item{ylist}{list of observed time series values for each subject}
@@ -28,7 +29,21 @@ dist_learn(ylist, timelist, prior_init, tpm_init, emit_init, zero_init,
 \item{yceil}{a scalar defining the ceiling of y, above which the values will be
 truncated. Default to NULL.}
 
-\item{rho}{tuning parameters in the distributed learning algorithm.}
+\item{rho}{tuning parameters in the distributed learning algorithm. Default to 1.}
+
+\item{priorclust}{a vector to specify the grouping for state prior. Default to
+NULL, which means no grouping.}
+
+\item{tpmclust}{a vector to specify the grouping for state transition rates. 
+Default to NULL, which means no grouping.}
+
+\item{emitclust}{a vector to specify the grouping for Poisson means. Default to
+NULL, which means no grouping.}
+
+\item{zeroclust}{a vector to specify the grouping for structural zero proportions. 
+Default to NULL, which means no grouping.}
+
+\item{group}{a list containing group information.}
 
 \item{maxit}{maximum number iteration. Default to 100.}
 
@@ -51,41 +66,54 @@ the maximum likelihood estimates of the zero-inflated hidden Markov model
 \description{
 Distributed learning for a longitudinal continuous-time zero-inflated Poisson
 hidden Markov model, where zero-inflation only happens in State 1. Assume that
-prior, transition rate are subject-specific, but the state-dependent parameters
-are the same across subjects. A distributed learning algorithm
-is used to estimate the parameters.
+priors, transition rates and state-dependent parameters can be subject-specific,
+clustered by group, or common. But at least one set of the parameters have to be 
+common across all subjects.
 }
 \examples{
 \dontrun{
 set.seed(930518)
-nsubj <- 20
-ns <- 10800
+nsubj <- 10
+ns <- 5040
 ylist <- vector(mode="list",length=nsubj)
 timelist <- vector(mode="list",length=nsubj)
+prior1 <- c(0.5,0.2 ,0.3 )
+omega1 <- matrix(c(-0.3,0.2,0.1,
+                  0.1,-0.2,0.1,
+                  0.15,0.2,-0.35),3,3,byrow=TRUE)
+prior2 <- c(0.3,0.3 ,0.4 )
+omega2 <- matrix(c(-0.5,0.25,0.25,
+                   0.2,-0.4,0.2,
+                   0.15,0.3,-0.45),3,3,byrow=TRUE)
+emit <- c(50,200,600)
+zero <- c(0.2,0,0)
 for(n in 1:nsubj){
-  rn1 <- runif(1,-0.02,0.02)
-  rn2 <- runif(1,-0.02,0.02)
- prior <- c(0.5 + rn1,0.2 + rn2,0.3 - rn1 - rn2)
- omega <- matrix(c(-0.3-rn1-rn2,0.2+rn1,0.1+rn2,
-                   0.1+rn1,-0.2-rn1-rn2,0.1+rn2,
-                   0.15+rn1,0.2+rn2,-0.35-rn1-rn2),3,3,byrow=TRUE)
- emit <- c(50,200,600)
- zero <- c(0.2,0,0)
- timeindex <- rep(1,1440)
+ timeindex <- rep(1,ns)
  for(i in 2:ns) timeindex[i] <- timeindex[i-1] + sample(1:4,1)
  timelist[[n]] <- timeindex
- 
- result <- hmmsim.cont(ns, 3, prior, omega, emit, zero, timeindex)
- ylist[[n]] <- result$series
+ if(n<=5){
+   result <- hmmsim.cont(ns, 3, prior1, omega1, emit, zero, timeindex)
+   ylist[[n]] <- result$series
+ }else{
+   result <- hmmsim.cont(ns, 3, prior2, omega2, emit, zero, timeindex)
+   ylist[[n]] <- result$series
+ }
 }
 prior_init <- c(0.5,0.2,0.3)
 emit_init <- c(50, 225, 650)
 zero_init <- 0.2
 tpm_init <- matrix(c(-0.3,0.2,0.1,0.1,-0.2,0.1,0.15,0.2,-0.35),3,3,byrow=TRUE)
-
+M <- 3
+priorclust <- NULL
+tpmclust <- c(1,1,1,1,1,2,2,2,2,2)
+zeroclust <- rep(1,10)
+emitclust <- rep(1,10)
+group <- vector(mode="list",length=2)
+group[[1]] <- 1:5; group[[2]] <- 6:10
 result <- dist_learn(ylist, timelist, prior_init, tpm_init, 
-                    emit_init, zero_init, rho=10, 
-                    maxit=100, tol=1e-4, method="CG")
+                    emit_init, zero_init,NULL, rho=1,priorclust,tpmclust,
+                    emitclust,zeroclust,group,ncores=1,
+                    maxit=50, tol=1e-4, method="CG", print=TRUE)
 }
 }
 \references{

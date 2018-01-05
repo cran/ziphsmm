@@ -58,6 +58,18 @@ rzip <- function(n, p, theta) {
     .Call('ziphsmm_rzip', PACKAGE = 'ziphsmm', n, p, theta)
 }
 
+pmf_expbase <- function(lden, eb, xval) {
+    .Call('ziphsmm_pmf_expbase', PACKAGE = 'ziphsmm', lden, eb, xval)
+}
+
+cdf_expbase <- function(lden, eb, xval) {
+    .Call('ziphsmm_cdf_expbase', PACKAGE = 'ziphsmm', lden, eb, xval)
+}
+
+random_expbase <- function(lden, eb, maxt) {
+    .Call('ziphsmm_random_expbase', PACKAGE = 'ziphsmm', lden, eb, maxt)
+}
+
 rshiftpois <- function(n, theta, shift) {
     .Call('ziphsmm_rshiftpois', PACKAGE = 'ziphsmm', n, theta, shift)
 }
@@ -403,5 +415,33 @@ grad_zipnegloglik_cov_cont <- function(parm, y, covariates, M, ntimes, timeindex
 
 hmm_cov_viterbi_cont <- function(parm, M, y, ncolcovpi, covpi, ncolcovtrans, covtrans, ncolcovp1, covp1, ncolcovpois, covpois, zeroindex, timeindex, udiff, expms) {
     .Call('ziphsmm_hmm_cov_viterbi_cont', PACKAGE = 'ziphsmm', parm, M, y, ncolcovpi, covpi, ncolcovtrans, covtrans, ncolcovp1, covp1, ncolcovpois, covpois, zeroindex, timeindex, udiff, expms)
+}
+
+smooth_nocov_cont <- function(delta, gamma, theta, lambda, y, ntimes, timeindex, udiff, expms) {
+    .Call('ziphsmm_smooth_nocov_cont', PACKAGE = 'ziphsmm', delta, gamma, theta, lambda, y, ntimes, timeindex, udiff, expms)
+}
+
+smooth_cov_cont <- function(delta, gamma, thetaparm, lambdaparm, y, x, ntimes, timeindex, udiff, expms) {
+    .Call('ziphsmm_smooth_cov_cont', PACKAGE = 'ziphsmm', delta, gamma, thetaparm, lambdaparm, y, x, ntimes, timeindex, udiff, expms)
+}
+
+hsmm_cov_gen_aft <- function(delta, lden, dtparm, tpmparm, zeroparm, emitparm, trunc, M, dim, ncolcovomega, covp, covomega, covp1, covpois) {
+    .Call('ziphsmm_hsmm_cov_gen_aft', PACKAGE = 'ziphsmm', delta, lden, dtparm, tpmparm, zeroparm, emitparm, trunc, M, dim, ncolcovomega, covp, covomega, covp1, covpois)
+}
+
+hsmm_cov_loglik_aft <- function(y, delta, lden, dtparm, tpmparm, zeroparm, emitparm, trunc, M, ncolcovomega, covp, covomega, covp1, covpois) {
+    .Call('ziphsmm_hsmm_cov_loglik_aft', PACKAGE = 'ziphsmm', y, delta, lden, dtparm, tpmparm, zeroparm, emitparm, trunc, M, ncolcovomega, covp, covomega, covp1, covpois)
+}
+
+retrieve_hsmm_aft <- function(allparm, trunc, M, ncolcovomega, ncolcovp, ncolcovp1, ncolcovpois) {
+    .Call('ziphsmm_retrieve_hsmm_aft', PACKAGE = 'ziphsmm', allparm, trunc, M, ncolcovomega, ncolcovp, ncolcovp1, ncolcovpois)
+}
+
+hsmm_cov_nllk_aft <- function(y, allparm, trunc, M, ncolcovomega, ncolcovp, ncolcovp1, ncolcovpois, covp, covomega, covp1, covpois) {
+    .Call('ziphsmm_hsmm_cov_nllk_aft', PACKAGE = 'ziphsmm', y, allparm, trunc, M, ncolcovomega, ncolcovp, ncolcovp1, ncolcovpois, covp, covomega, covp1, covpois)
+}
+
+hsmm_cov_viterbi_exp <- function(y, trunc, M, delta, lden, dtparm, tpmparm, zeroparm, emitparm, ncolcovomega, covp, covomega, covp1, covpois) {
+    .Call('ziphsmm_hsmm_cov_viterbi_exp', PACKAGE = 'ziphsmm', y, trunc, M, delta, lden, dtparm, tpmparm, zeroparm, emitparm, ncolcovomega, covp, covomega, covp1, covpois)
 }
 

@@ -1,6 +1,4 @@
-#' Pseudo activity count (per minute) data for cats
-#'
-#' A simulated dataset containing the per minute activity count for cats
+#' Pseudo activity counts (per minute) data for cats
 #'
 #' @format A data frame with 4320 rows and 5 variables:
 #' \describe{

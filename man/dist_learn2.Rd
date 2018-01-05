@@ -3,14 +3,17 @@
 \name{dist_learn2}
 \alias{dist_learn2}
 \title{Distributed learning for a longitudinal continuous-time zero-inflated Poisson
-hidden Markov model, where zero-inflation only happens in State 1. Assume that
-prior, transition rate are subject-specific, but the state-dependent parameters
-are the same across subjects. A distributed learning algorithm
-is used to estimate the parameters.}
+hidden Markov model, where zero-inflation only happens in State 1 and covariates are
+for state-dependent zero proportion and means. Assume that priors, transition rates, 
+state-dependent intercepts and slopes can be subject-specific,
+clustered by group, or common. But at least one set of the parameters have to be 
+common across all subjects.}
 \usage{
 dist_learn2(ylist, xlist, timelist, prior_init, tpm_init, emit_init, zero_init,
-  yceil = NULL, rho = 1, maxit = 100, tol = 1e-04, ncores = 1,
-  method = "CG", print = TRUE, libpath = NULL, ...)
+  yceil = NULL, rho = 1, priorclust = NULL, tpmclust = NULL,
+  emitclust = NULL, zeroclust = NULL, slopeclust = NULL, group,
+  maxit = 100, tol = 1e-04, ncores = 1, method = "CG", print = TRUE,
+  libpath = NULL, ...)
 }
 \arguments{
 \item{ylist}{list of observed time series values for each subject}
@@ -30,7 +33,25 @@ dist_learn2(ylist, xlist, timelist, prior_init, tpm_init, emit_init, zero_init,
 \item{yceil}{a scalar defining the ceiling of y, above which the values will be
 truncated. Default to NULL.}
 
-\item{rho}{tuning parameters in the distributed learning algorithm.}
+\item{rho}{tuning parameter in the distributed learning algorithm. Default
+to 1.}
+
+\item{priorclust}{a vector to specify the grouping for state prior. Default to
+NULL, which means no grouping.}
+
+\item{tpmclust}{a vector to specify the grouping for state transition rates. 
+Default to NULL, which means no grouping.}
+
+\item{emitclust}{a vector to specify the grouping for the intercepts in Poisson
+regressions. Default to NULL, which means no grouping.}
+
+\item{zeroclust}{a vector to specify the grouping for the intercepts in ZIP 
+regression. Default to NULL, which means no grouping.}
+
+\item{slopeclust}{a vector to specify the grouping for the slopes in Poisson and
+ZIP regressions. Default to NULL, which means no grouping.}
+
+\item{group}{a list containing group information.}
 
 \item{maxit}{maximum number iteration. Default to 100.}
 
@@ -52,32 +73,41 @@ the maximum likelihood estimates of the zero-inflated hidden Markov model
 }
 \description{
 Distributed learning for a longitudinal continuous-time zero-inflated Poisson
-hidden Markov model, where zero-inflation only happens in State 1. Assume that
-prior, transition rate are subject-specific, but the state-dependent parameters
-are the same across subjects. A distributed learning algorithm
-is used to estimate the parameters.
+hidden Markov model, where zero-inflation only happens in State 1 and covariates are
+for state-dependent zero proportion and means. Assume that priors, transition rates, 
+state-dependent intercepts and slopes can be subject-specific,
+clustered by group, or common. But at least one set of the parameters have to be 
+common across all subjects.
 }
 \examples{
 \dontrun{
 set.seed(12933)
 nsubj <- 20
+ns <- 4000
 ylist <- vector(mode="list",length=nsubj)
 xlist <- vector(mode="list",length=nsubj)
 timelist <- vector(mode="list",length=nsubj)
 
+priorparm1 <- 0
+priorparm2 <- 1
+tpmparm1 <- c(-2,-2)
+tpmparm2 <- c(0,0)
+zeroparm <- c(-2,0)
+emitparm <- c(4,0, 6,0)
+zeroindex <- c(1,0)
 for(n in 1:nsubj){
- priorparm <- 0 + runif(1,-0.1,0.1)
- tpmparm <- c(-3+ runif(1,-0.1,0.1),-3+ runif(1,-0.1,0.1))
- zeroindex <- c(1,0)
- zeroparm <- c(-2 + runif(1,-0.1,0.1),0)
- emitparm <- c(4+ runif(1,-0.1,0.1),0,
-               6+ runif(1,-0.1,0.1),0)
- workparm <- c(priorparm,tpmparm,zeroparm,emitparm)
+ 
+ xlist[[n]] <- matrix(rep(c(0,1,0,1),rep(1000,4)),nrow=4000,ncol=1)
+ 
  timeindex <- rep(1,4000)
  for(i in 2:4000) timeindex[i] <- timeindex[i-1] + sample(1:4,1)
  timelist[[n]] <- timeindex
  
- xlist[[n]] <- matrix(rep(c(0,1,0,1),rep(1000,4)),nrow=4000,ncol=1)
+ if(n<=10){
+   workparm <- c(priorparm1,tpmparm1,zeroparm,emitparm)
+ }else{
+   workparm <- c(priorparm2,tpmparm2,zeroparm,emitparm)
+ }
  
  result <- hmmsim2.cont(workparm,2,4000,zeroindex,emit_x=xlist[[n]],
                         zeroinfl_x=xlist[[n]],timeindex=timeindex)
@@ -89,9 +119,23 @@ tpm_init=matrix(c(-0.1,0.1,0.1,-0.1),2,2,byrow=TRUE)
 zero_init=0.2
 emit_init=c(50,400)
 
+####
+M <- 2
+priorclust <- c(rep(1,10),rep(2,10))
+tpmclust <- c(rep(1,10),rep(2,10))
+zeroclust <- NULL
+emitclust <- NULL
+slopeclust <- rep(1,20)
+
+group <- vector(mode="list",length=2)
+group[[1]] <- 1:10; group[[2]] <- 11:20
+###
+time <- proc.time()
 result <- dist_learn2(ylist, xlist, timelist, prior_init, tpm_init, 
-                     emit_init, zero_init, rho=10, maxit=100, tol=1e-4,
-                     method="CG",print=TRUE)
+                     emit_init, zero_init, NULL, rho=1, priorclust,tpmclust,
+                     emitclust,zeroclust,slopeclust,group,ncores=1,
+                     maxit=10, tol=1e-4, method="CG",print=TRUE)
+proc.time() - time
 }
 }
 \references{

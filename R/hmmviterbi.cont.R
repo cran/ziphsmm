@@ -1,7 +1,7 @@
 
 ########################################################
 #' Viterbi algorithm to decode the latent states for continuous-time
-#'hidden Markov models
+#' hidden Markov models without covariates
 #' @param y the observed series to be decoded
 #' @param M number of latent states
 #' @param prior_init a vector of prior probability values

@@ -40,8 +40,7 @@ Default to NULL.}
 \item{zeroinfl_x}{matrix of covariates for the nonzero structural zero proportions. Default to NULL.}
 }
 \value{
-a matrix with 1st column of simulated series and 
-2nd column of corresponding states
+simulated series and corresponding states
 }
 \description{
 Simulate a hidden semi-Markov series and its underlying states with covariates

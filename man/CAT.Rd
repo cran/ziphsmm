@@ -3,7 +3,7 @@
 \docType{data}
 \name{CAT}
 \alias{CAT}
-\title{Pseudo activity count (per minute) data for cats}
+\title{Pseudo activity counts (per minute) data for cats}
 \format{A data frame with 4320 rows and 5 variables:
 \describe{
   \item{id}{cat ID: 1,2,3}
@@ -16,6 +16,6 @@
 CAT
 }
 \description{
-A simulated dataset containing the per minute activity count for cats
+Pseudo activity counts (per minute) data for cats
 }
 \keyword{datasets}

@@ -22,8 +22,7 @@
 #' Default to NULL.
 #' @param emit_x matrix of covariates for the log poisson means. Default to NULL.
 #' @param zeroinfl_x matrix of covariates for the nonzero structural zero proportions. Default to NULL.
-#' @return a matrix with 1st column of simulated series and 
-#' 2nd column of corresponding states
+#' @return simulated series and corresponding states
 #' @references Walter Zucchini, Iain L. MacDonald, Roland Langrock. Hidden Markov Models for 
 #' Time Series: An Introduction Using R, Second Edition. Chapman & Hall/CRC
 #' @examples
