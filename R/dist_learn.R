@@ -95,7 +95,7 @@ dist_learn <- function(ylist, timelist, prior_init, tpm_init,
                         rho=1, priorclust=NULL,tpmclust=NULL,
                         emitclust=NULL,zeroclust=NULL,group,
                         maxit=100, tol=1e-4, ncores=1,
-                        method="CG", print=TRUE, libpath=NULL, ...){
+                        method="Nelder-Mead", print=TRUE, libpath=NULL, ...){
   
   nsubj <- length(ylist)
   M <- ncol(tpm_init)
@@ -579,9 +579,9 @@ dist_learn <- function(ylist, timelist, prior_init, tpm_init,
          (iteration>2 & relchange < tol & reldualchange < tol )) {
         nllk <- oldlik; break}
       
+      kkt_cur <- max(reldualchange, new_nllk_change)
       if(print==TRUE & iteration>=2){
-        cat("iter:",iteration, "; residual_rel_chg:", relchange,
-            "; dual_rel_chg:",reldualchange,"; nllk_rel_chg:",new_nllk_change,"\n")
+        cat("iter:",iteration, "; kkt_residual:", kkt_cur,"\n")
       }
       
       olddiff <- newdiff #
@@ -594,8 +594,9 @@ dist_learn <- function(ylist, timelist, prior_init, tpm_init,
       old_nllk_change <- new_nllk_change
       iteration <- iteration + 1
     }
-    return(list(working_parm=parm,common_parm=z,
-                residual_change=primal_change[-1],dual_change=dual_change[-1],
+    return(list(working_parm=parm,
+                #common_parm=z,
+                kkt=pmax(dual_change[-1],nllk_change[-1]),
                 nllk=nllk))
   }
   

@@ -1,8 +1,8 @@
 #' \tabular{ll}{
 #' Package: \tab ziphsmm \cr
 #' Type: \tab Package\cr
-#' Version: \tab 2.0.1\cr
-#' Date: \tab 2018-01-01\cr
+#' Version: \tab 2.0.2\cr
+#' Date: \tab 2018-03-10\cr
 #' License: \tab GPL-2\cr
 #' LazyLoad: \tab yes\cr
 #' LazyData: \tab yes\cr
@@ -10,8 +10,6 @@
 #'
 #' @author Zekun Xu \email{zekunxu@gmail.com}
 #' @author Ye Liu
-#' @author Ana-Maria Staicu
-#' @author Eric Laber
 #' Maintainer: Zekun Xu \email{zekunxu@gmail.com}
 #' @name package-ziphsmm
 #' @aliases ziphsmm-package

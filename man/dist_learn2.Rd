@@ -12,8 +12,8 @@ common across all subjects.}
 dist_learn2(ylist, xlist, timelist, prior_init, tpm_init, emit_init, zero_init,
   yceil = NULL, rho = 1, priorclust = NULL, tpmclust = NULL,
   emitclust = NULL, zeroclust = NULL, slopeclust = NULL, group,
-  maxit = 100, tol = 1e-04, ncores = 1, method = "CG", print = TRUE,
-  libpath = NULL, ...)
+  maxit = 100, tol = 1e-04, ncores = 1, method = "Nelder-Mead",
+  print = TRUE, libpath = NULL, ...)
 }
 \arguments{
 \item{ylist}{list of observed time series values for each subject}
