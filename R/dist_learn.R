@@ -247,9 +247,9 @@ dist_learn <- function(ylist, timelist, prior_init, tpm_init,
     z[commonindex] <- rowMeans(tempcommon) + colMeans(l[,commonindex])/rho
     
     #primal residual
-    olddiff <- olddiff + sum((tempcommon-z[commonindex])^2)
-    oldnorm <- sum(z^2)
-    olddiff <- olddiff / (1+oldnorm)
+    olddiff <- sum((tempcommon-z[commonindex])^2)
+    #
+    oldznorm <- sum(z^2)
     
     olddualdiff <- 0
     olddualparm <- l
@@ -281,6 +281,7 @@ dist_learn <- function(ylist, timelist, prior_init, tpm_init,
     primal_change <- NULL
     dual_change <- NULL
     nllk_change <- NULL
+    z_change <- NULL
     
     #recursion
     while(iteration<=maxit){
@@ -357,13 +358,16 @@ dist_learn <- function(ylist, timelist, prior_init, tpm_init,
       }))
       
       #update z
-      newdiff <- 0
       tempcommon <- J[jcommonindex,commonindex2]%*%t(parm[,commonindex2])
       z[commonindex] <- rowMeans(tempcommon) + colMeans(l[,commonindex])/rho
-      newdiff <- newdiff + sum((tempcommon-z[commonindex])^2)
+      newdiff <- sum((tempcommon-z[commonindex])^2)
       newnorm <- sum(z^2)
-      relchange <- newdiff / (1+oldnorm)
+      relchange <- newdiff / (1+olddiff)
       primal_change <- c(primal_change,relchange)
+      #
+      newznorm <- sum(z^2)
+      newzdiff <- abs(newznorm - oldznorm)/(1+oldznorm)
+      z_change <- c(z_change, newzdiff)
       
       #update l
       for(i in 1:nsubj){
@@ -383,27 +387,29 @@ dist_learn <- function(ylist, timelist, prior_init, tpm_init,
       new_nllk_change <- abs(nllk-oldlik)/(1+oldlik)
       nllk_change <- c(nllk_change,new_nllk_change)
       
+      kkt_cur <- max(newzdiff, reldualchange, new_nllk_change)
       if(iteration > maxit | 
-         (iteration>2 & relchange < tol & reldualchange < tol )) {
+         (iteration>2 & kkt_cur < tol )) {
         nllk <- oldlik; break}
       
+      kkt_cur <- max(newzdiff, reldualchange, new_nllk_change)
       if(print==TRUE & iteration>=2){
-        cat("iter:",iteration, "; residual_rel_chg:", relchange,
-            "; dual_rel_chg:",reldualchange,"; nllk_rel_chg:",new_nllk_change,"\n")
+        cat("iter:",iteration, "; kkt_residual:", kkt_cur,"\n")
       }
       
       olddiff <- newdiff #
-      #oldparm <- newparm #
-      oldnorm <- newnorm #
+
       olddualdiff <- newdualdiff
       olddualparm <- newdualparm
       olddualnorm <- newdualnorm
-      
+      oldznorm <- newznorm
+        
       old_nllk_change <- new_nllk_change
       iteration <- iteration + 1
     }
-    return(list(working_parm=parm,common_parm=z,
-                residual_change=primal_change[-1],dual_change=dual_change[-1],
+    return(list(working_parm=parm,
+                common_parm=z,
+                kkt = c(z_change[-1],dual_change[-1],nllk_change[-1]),
                 nllk=nllk))
     
     ##################
@@ -427,8 +433,7 @@ dist_learn <- function(ylist, timelist, prior_init, tpm_init,
     
     #primal residual
     olddiff <- olddiff + sum((tempcommon-z[commonindex])^2)
-    oldnorm <- sum(z^2)
-    olddiff <- olddiff / (1+oldnorm)
+    oldznorm <- sum(z^2)
     
     olddualdiff <- 0
     olddualparm <- l
@@ -460,6 +465,7 @@ dist_learn <- function(ylist, timelist, prior_init, tpm_init,
     primal_change <- NULL
     dual_change <- NULL
     nllk_change <- NULL
+    z_change <- NULL
     
     #recursion
     while(iteration<=maxit){
@@ -552,9 +558,12 @@ dist_learn <- function(ylist, timelist, prior_init, tpm_init,
       tempcommon <- J[jcommonindex,commonindex2]%*%t(parm[,commonindex2])
       z[commonindex] <- rowMeans(tempcommon) + colMeans(l[,commonindex])/rho
       newdiff <- newdiff + sum((tempcommon-z[commonindex])^2)
-      newnorm <- sum(z^2)
-      relchange <- newdiff / (1+oldnorm)
+      newznorm <- sum(z^2)
+      newzdiff <- abs(newznorm-oldznorm)/(1+oldznorm)
+      
+      relchange <- newdiff / (1+olddiff)
       primal_change <- c(primal_change,relchange)
+      z_change <- c(z_change, newzdiff)
       
       #update l
       for(i in 1:nsubj){
@@ -575,28 +584,27 @@ dist_learn <- function(ylist, timelist, prior_init, tpm_init,
       new_nllk_change <- abs(nllk-oldlik)/(1+oldlik)
       nllk_change <- c(nllk_change,new_nllk_change)
       
+      kkt_cur <- max(newzdiff, reldualchange, new_nllk_change)
       if(iteration > maxit | 
-         (iteration>2 & relchange < tol & reldualchange < tol )) {
+         (iteration>2 & kkt_cur < tol )) {
         nllk <- oldlik; break}
       
-      kkt_cur <- max(reldualchange, new_nllk_change)
       if(print==TRUE & iteration>=2){
         cat("iter:",iteration, "; kkt_residual:", kkt_cur,"\n")
       }
       
       olddiff <- newdiff #
-      #oldparm <- newparm #
-      oldnorm <- newnorm #
+
       olddualdiff <- newdualdiff
       olddualparm <- newdualparm
       olddualnorm <- newdualnorm
-      
+      oldznorm <- newznorm
       old_nllk_change <- new_nllk_change
       iteration <- iteration + 1
     }
     return(list(working_parm=parm,
-                #common_parm=z,
-                kkt=pmax(dual_change[-1],nllk_change[-1]),
+                common_parm=z,
+                kkt=pmax(z_change[-1],dual_change[-1],nllk_change[-1]),
                 nllk=nllk))
   }
   

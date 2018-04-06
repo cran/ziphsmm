@@ -1,9 +1,9 @@
-014d51e2f34d8a812d0eb18e9ff5ae96 *DESCRIPTION
+8af59619b0b3fbcaeddae94f4faab3da *DESCRIPTION
 07efe11a24e373ed57f89c728216f282 *NAMESPACE
 606dfe89a371f74218be60d9f7aa3759 *R/RcppExports.R
 0a54fe16d90e2c2e59d5419726b34036 *R/data.R
-35169c64b9ef3f9e293ab2841514d604 *R/dist_learn.R
-a69f666f4fcfbe584d8b2cedd1c7879d *R/dist_learn2.R
+0bec19a005f1fd6f335d53b2ff659e23 *R/dist_learn.R
+5f0471de04fafe2eaf40c1ee9eb373f5 *R/dist_learn2.R
 7b616e9c9869f8d25a28eff64129dfbb *R/fasthmmfit.R
 e66bc3ba2432583ff6b3b11b145a63dc *R/fasthmmfit.cont.R
 f045fbb8c2a23527bdf0175d3d916803 *R/fasthsmmfit.R
@@ -26,7 +26,7 @@ cc59c8978c4fe9e5a6963d151654ca37 *R/hsmmsim2_exp.R
 4c0f826c3d908e357c5a036349214354 *R/hsmmviterbi.R
 268cc90ebb7dbbb4242cb3a505d624c9 *R/hsmmviterbi2.R
 30574124465c9bb59223ea13a3b7032e *R/hsmmviterbi_exp.R
-bfaf5ddaa0d7a625bb71f5bd26d0e12e *R/package.R
+04f8bbb8cad7404b19f58707cd0039c0 *R/package.R
 b74ca81160d84f9bd8ca8f86bb418097 *data/CAT.RData
 03a761120f7dc287e4f533b322d6d170 *man/CAT.Rd
 631fa7eda1e31d78e5cdef7af772ceeb *man/dist_learn.Rd
@@ -56,7 +56,7 @@ f069574cae629a555bc2ef4d8c714f38 *man/hsmmsim2_exp.Rd
 6c206a51942efbb69cbdde463570e856 *man/hsmmviterbi.Rd
 2c903ff0ce90f7d8504356d57e135dcc *man/hsmmviterbi2.Rd
 18b5765e8ad8f100f390f12baebb3702 *man/hsmmviterbi_exp.Rd
-c4744c9d1d5c09da6e084c2f0637e9c7 *man/package-ziphsmm.Rd
+0caf6707be861aacee826795e86e3d1a *man/package-ziphsmm.Rd
 139cee8690013969506ece929ffbd7cc *man/retrieve_cov_cont.Rd
 5809c2c52ca8c9086a7fb16ebc9807ae *man/retrieve_nocov_cont.Rd
 6cb756350ca86fd0d610e056969b9e2c *man/rzip.Rd
