@@ -291,21 +291,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// getnodeprob_cov
-arma::mat getnodeprob_cov(arma::vec y, arma::mat x, arma::vec zerovec, arma::mat emitmat, int m);
-RcppExport SEXP ziphsmm_getnodeprob_cov(SEXP ySEXP, SEXP xSEXP, SEXP zerovecSEXP, SEXP emitmatSEXP, SEXP mSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::vec >::type y(ySEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type zerovec(zerovecSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type emitmat(emitmatSEXP);
-    Rcpp::traits::input_parameter< int >::type m(mSEXP);
-    rcpp_result_gen = Rcpp::wrap(getnodeprob_cov(y, x, zerovec, emitmat, m));
-    return rcpp_result_gen;
-END_RCPP
-}
 // hmm_cov_gen
 arma::mat hmm_cov_gen(arma::vec parm, int M, long dim, int ncolcovpi, arma::mat covpi, int ncolcovtrans, arma::mat covtrans, int ncolcovp1, arma::mat covp1, int ncolcovpois, arma::mat covpois, arma::vec zeroindex);
 RcppExport SEXP ziphsmm_hmm_cov_gen(SEXP parmSEXP, SEXP MSEXP, SEXP dimSEXP, SEXP ncolcovpiSEXP, SEXP covpiSEXP, SEXP ncolcovtransSEXP, SEXP covtransSEXP, SEXP ncolcovp1SEXP, SEXP covp1SEXP, SEXP ncolcovpoisSEXP, SEXP covpoisSEXP, SEXP zeroindexSEXP) {
@@ -1581,6 +1566,133 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::mat >::type covp1(covp1SEXP);
     Rcpp::traits::input_parameter< arma::mat >::type covpois(covpoisSEXP);
     rcpp_result_gen = Rcpp::wrap(hsmm_cov_viterbi_exp(y, trunc, M, delta, lden, dtparm, tpmparm, zeroparm, emitparm, ncolcovomega, covp, covomega, covp1, covpois));
+    return rcpp_result_gen;
+END_RCPP
+}
+// hmm_cov_gen_cont3
+arma::mat hmm_cov_gen_cont3(arma::vec parm, int M, long dim, int ncolcovpi, arma::mat covpi, int ncolcovtrans, arma::mat covtrans, int ncolcovp1, arma::mat covp1, int ncolcovpois, arma::mat covpois, arma::vec zeroindex, arma::vec timeindex);
+RcppExport SEXP ziphsmm_hmm_cov_gen_cont3(SEXP parmSEXP, SEXP MSEXP, SEXP dimSEXP, SEXP ncolcovpiSEXP, SEXP covpiSEXP, SEXP ncolcovtransSEXP, SEXP covtransSEXP, SEXP ncolcovp1SEXP, SEXP covp1SEXP, SEXP ncolcovpoisSEXP, SEXP covpoisSEXP, SEXP zeroindexSEXP, SEXP timeindexSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type parm(parmSEXP);
+    Rcpp::traits::input_parameter< int >::type M(MSEXP);
+    Rcpp::traits::input_parameter< long >::type dim(dimSEXP);
+    Rcpp::traits::input_parameter< int >::type ncolcovpi(ncolcovpiSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type covpi(covpiSEXP);
+    Rcpp::traits::input_parameter< int >::type ncolcovtrans(ncolcovtransSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type covtrans(covtransSEXP);
+    Rcpp::traits::input_parameter< int >::type ncolcovp1(ncolcovp1SEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type covp1(covp1SEXP);
+    Rcpp::traits::input_parameter< int >::type ncolcovpois(ncolcovpoisSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type covpois(covpoisSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type zeroindex(zeroindexSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type timeindex(timeindexSEXP);
+    rcpp_result_gen = Rcpp::wrap(hmm_cov_gen_cont3(parm, M, dim, ncolcovpi, covpi, ncolcovtrans, covtrans, ncolcovp1, covp1, ncolcovpois, covpois, zeroindex, timeindex));
+    return rcpp_result_gen;
+END_RCPP
+}
+// ziploglik_cov_cont3
+double ziploglik_cov_cont3(arma::vec delta, arma::mat gammaparm, arma::vec thetaparm, arma::mat lambdaparm, arma::vec y, arma::mat x, arma::vec ntimes, arma::vec timeindex);
+RcppExport SEXP ziphsmm_ziploglik_cov_cont3(SEXP deltaSEXP, SEXP gammaparmSEXP, SEXP thetaparmSEXP, SEXP lambdaparmSEXP, SEXP ySEXP, SEXP xSEXP, SEXP ntimesSEXP, SEXP timeindexSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type delta(deltaSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type gammaparm(gammaparmSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type thetaparm(thetaparmSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type lambdaparm(lambdaparmSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type y(ySEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type ntimes(ntimesSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type timeindex(timeindexSEXP);
+    rcpp_result_gen = Rcpp::wrap(ziploglik_cov_cont3(delta, gammaparm, thetaparm, lambdaparm, y, x, ntimes, timeindex));
+    return rcpp_result_gen;
+END_RCPP
+}
+// getallexpm3
+arma::cube getallexpm3(int M, arma::mat gammaparm, arma::mat tpmcov, arma::vec timeindex);
+RcppExport SEXP ziphsmm_getallexpm3(SEXP MSEXP, SEXP gammaparmSEXP, SEXP tpmcovSEXP, SEXP timeindexSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type M(MSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type gammaparm(gammaparmSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type tpmcov(tpmcovSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type timeindex(timeindexSEXP);
+    rcpp_result_gen = Rcpp::wrap(getallexpm3(M, gammaparm, tpmcov, timeindex));
+    return rcpp_result_gen;
+END_RCPP
+}
+// getnodeprob_cov_cont
+arma::mat getnodeprob_cov_cont(arma::vec y, arma::mat x, arma::vec thetaparm, arma::mat lambdaparm, int m);
+RcppExport SEXP ziphsmm_getnodeprob_cov_cont(SEXP ySEXP, SEXP xSEXP, SEXP thetaparmSEXP, SEXP lambdaparmSEXP, SEXP mSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type y(ySEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type thetaparm(thetaparmSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type lambdaparm(lambdaparmSEXP);
+    Rcpp::traits::input_parameter< int >::type m(mSEXP);
+    rcpp_result_gen = Rcpp::wrap(getnodeprob_cov_cont(y, x, thetaparm, lambdaparm, m));
+    return rcpp_result_gen;
+END_RCPP
+}
+// fb_cont3
+Rcpp::List fb_cont3(arma::vec Pi, arma::cube expms, arma::mat nodeprob, long dim, arma::vec ntimes, arma::vec timeindex);
+RcppExport SEXP ziphsmm_fb_cont3(SEXP PiSEXP, SEXP expmsSEXP, SEXP nodeprobSEXP, SEXP dimSEXP, SEXP ntimesSEXP, SEXP timeindexSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type Pi(PiSEXP);
+    Rcpp::traits::input_parameter< arma::cube >::type expms(expmsSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type nodeprob(nodeprobSEXP);
+    Rcpp::traits::input_parameter< long >::type dim(dimSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type ntimes(ntimesSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type timeindex(timeindexSEXP);
+    rcpp_result_gen = Rcpp::wrap(fb_cont3(Pi, expms, nodeprob, dim, ntimes, timeindex));
+    return rcpp_result_gen;
+END_RCPP
+}
+// retrieve_cov_cont3
+Rcpp::List retrieve_cov_cont3(arma::vec parm, int M, int ncolx);
+RcppExport SEXP ziphsmm_retrieve_cov_cont3(SEXP parmSEXP, SEXP MSEXP, SEXP ncolxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type parm(parmSEXP);
+    Rcpp::traits::input_parameter< int >::type M(MSEXP);
+    Rcpp::traits::input_parameter< int >::type ncolx(ncolxSEXP);
+    rcpp_result_gen = Rcpp::wrap(retrieve_cov_cont3(parm, M, ncolx));
+    return rcpp_result_gen;
+END_RCPP
+}
+// zipnegloglik_cov_cont3
+double zipnegloglik_cov_cont3(arma::vec parm, arma::vec y, arma::mat covariates, int M, arma::vec ntimes, arma::vec timeindex);
+RcppExport SEXP ziphsmm_zipnegloglik_cov_cont3(SEXP parmSEXP, SEXP ySEXP, SEXP covariatesSEXP, SEXP MSEXP, SEXP ntimesSEXP, SEXP timeindexSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type parm(parmSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type y(ySEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type covariates(covariatesSEXP);
+    Rcpp::traits::input_parameter< int >::type M(MSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type ntimes(ntimesSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type timeindex(timeindexSEXP);
+    rcpp_result_gen = Rcpp::wrap(zipnegloglik_cov_cont3(parm, y, covariates, M, ntimes, timeindex));
+    return rcpp_result_gen;
+END_RCPP
+}
+// convolution
+arma::vec convolution(arma::vec vec1, arma::vec vec2);
+RcppExport SEXP ziphsmm_convolution(SEXP vec1SEXP, SEXP vec2SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type vec1(vec1SEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type vec2(vec2SEXP);
+    rcpp_result_gen = Rcpp::wrap(convolution(vec1, vec2));
     return rcpp_result_gen;
 END_RCPP
 }

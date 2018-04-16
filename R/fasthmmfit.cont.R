@@ -1,6 +1,6 @@
 
 #######################################################
-#' Fast gradient descent / stochastic gradient descent algorithm to learn the parameters
+#' Fast gradient descent algorithm to learn the parameters
 #' in a specialized continuous-time zero-inflated hidden Markov model, where 
 #' zero-inflation only happens in State 1. And if there were covariates, they 
 #' could only be the same ones for the state-dependent log Poisson means and 
@@ -40,7 +40,6 @@
 #' for(i in 2:1000) timeindex[i] <- timeindex[i-1] + sample(1:4,1)
 #'
 #' designx <- matrix(rnorm(2000),nrow=1000,ncol=2)
-#' x <- cbind(1,designx) #has to make the additional 1st column of 1 for intercept
 #' result <- hmmsim2.cont(workparm,2,1000,zeroindex,emit_x=designx,
 #'                       zeroinfl_x=designx,timeindex=timeindex)
 #' y <- result$series

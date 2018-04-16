@@ -102,10 +102,6 @@ getnodeprob_nocov <- function(ystar, emit) {
     .Call('ziphsmm_getnodeprob_nocov', PACKAGE = 'ziphsmm', ystar, emit)
 }
 
-getnodeprob_cov <- function(y, x, zerovec, emitmat, m) {
-    .Call('ziphsmm_getnodeprob_cov', PACKAGE = 'ziphsmm', y, x, zerovec, emitmat, m)
-}
-
 hmm_cov_gen <- function(parm, M, dim, ncolcovpi, covpi, ncolcovtrans, covtrans, ncolcovp1, covp1, ncolcovpois, covpois, zeroindex) {
     .Call('ziphsmm_hmm_cov_gen', PACKAGE = 'ziphsmm', parm, M, dim, ncolcovpi, covpi, ncolcovtrans, covtrans, ncolcovp1, covp1, ncolcovpois, covpois, zeroindex)
 }
@@ -443,5 +439,59 @@ hsmm_cov_nllk_aft <- function(y, allparm, trunc, M, ncolcovomega, ncolcovp, ncol
 
 hsmm_cov_viterbi_exp <- function(y, trunc, M, delta, lden, dtparm, tpmparm, zeroparm, emitparm, ncolcovomega, covp, covomega, covp1, covpois) {
     .Call('ziphsmm_hsmm_cov_viterbi_exp', PACKAGE = 'ziphsmm', y, trunc, M, delta, lden, dtparm, tpmparm, zeroparm, emitparm, ncolcovomega, covp, covomega, covp1, covpois)
+}
+
+hmm_cov_gen_cont3 <- function(parm, M, dim, ncolcovpi, covpi, ncolcovtrans, covtrans, ncolcovp1, covp1, ncolcovpois, covpois, zeroindex, timeindex) {
+    .Call('ziphsmm_hmm_cov_gen_cont3', PACKAGE = 'ziphsmm', parm, M, dim, ncolcovpi, covpi, ncolcovtrans, covtrans, ncolcovp1, covp1, ncolcovpois, covpois, zeroindex, timeindex)
+}
+
+ziploglik_cov_cont3 <- function(delta, gammaparm, thetaparm, lambdaparm, y, x, ntimes, timeindex) {
+    .Call('ziphsmm_ziploglik_cov_cont3', PACKAGE = 'ziphsmm', delta, gammaparm, thetaparm, lambdaparm, y, x, ntimes, timeindex)
+}
+
+getallexpm3 <- function(M, gammaparm, tpmcov, timeindex) {
+    .Call('ziphsmm_getallexpm3', PACKAGE = 'ziphsmm', M, gammaparm, tpmcov, timeindex)
+}
+
+getnodeprob_cov_cont <- function(y, x, thetaparm, lambdaparm, m) {
+    .Call('ziphsmm_getnodeprob_cov_cont', PACKAGE = 'ziphsmm', y, x, thetaparm, lambdaparm, m)
+}
+
+fb_cont3 <- function(Pi, expms, nodeprob, dim, ntimes, timeindex) {
+    .Call('ziphsmm_fb_cont3', PACKAGE = 'ziphsmm', Pi, expms, nodeprob, dim, ntimes, timeindex)
+}
+
+#' retrieve the natural parameters from the working parameters in zero-inflated Poisson
+#' hidden Markov model with covariates in state-dependent parameters and transition rates
+#' @param parm working parameters
+#' @param M number of hidden states
+#' @param ncolx number of covariates including the intercept
+#' @return a list of natural parameters
+#' @export
+retrieve_cov_cont3 <- function(parm, M, ncolx) {
+    .Call('ziphsmm_retrieve_cov_cont3', PACKAGE = 'ziphsmm', parm, M, ncolx)
+}
+
+#' negative log likelihood function for zero-inflated Poisson hidden Markov model
+#' with covariates in state-dependent parameters and transition rates
+#' @param parm working parameters
+#' @param y observed series
+#' @param covariates design matrix of covariates including the intercept
+#' @param M number of hidden states
+#' @param ntimes length of the observed series
+#' @param timeindex vector of observed time points
+#' @return negative log likelihood
+#' @export
+zipnegloglik_cov_cont3 <- function(parm, y, covariates, M, ntimes, timeindex) {
+    .Call('ziphsmm_zipnegloglik_cov_cont3', PACKAGE = 'ziphsmm', parm, y, covariates, M, ntimes, timeindex)
+}
+
+#' Convolution of two real vectors of the same length.
+#' @param vec1 the first vector
+#' @param vec2 the second vector
+#' @return a vector of full convolution
+#' @export
+convolution <- function(vec1, vec2) {
+    .Call('ziphsmm_convolution', PACKAGE = 'ziphsmm', vec1, vec2)
 }
 

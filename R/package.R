@@ -1,8 +1,8 @@
 #' \tabular{ll}{
 #' Package: \tab ziphsmm \cr
 #' Type: \tab Package\cr
-#' Version: \tab 2.0.3\cr
-#' Date: \tab 2018-04-05\cr
+#' Version: \tab 2.0.4\cr
+#' Date: \tab 2018-04-16\cr
 #' License: \tab GPL-2\cr
 #' LazyLoad: \tab yes\cr
 #' LazyData: \tab yes\cr
@@ -25,6 +25,7 @@ NULL
 #' @importFrom graphics points
 #' @importFrom stats optim
 #' @importFrom stats runif
+#' @importFrom pracma grad
 
 #generalized logit and inverse logit function
 #1 / (1+sum(exp(x[-1]))) = p1
