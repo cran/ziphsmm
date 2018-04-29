@@ -1,10 +1,10 @@
-839c4960ad6abbd6a35a95490c980731 *DESCRIPTION
+b8b3249f759e003725f477ff82f72d87 *DESCRIPTION
 6a96bda69abe2435ee3e8886b3519eae *NAMESPACE
-4ed7b2ddfb5bbac4135480cbcd2e47d6 *R/RcppExports.R
+955278de53b0db9faed34a487c854671 *R/RcppExports.R
 0a54fe16d90e2c2e59d5419726b34036 *R/data.R
-e952a4c9ff7497872a0695bb4ddd5c88 *R/dist_learn.R
-f0d884317b33f65aa6421be11f1f3f30 *R/dist_learn2.R
-dab928d441655ed839bc02c7b5b1ced5 *R/dist_learn3.R
+cdfffe33c05091daae9941bf62d7e487 *R/dist_learn.R
+61ecc7cfeea2706882a089a013d52223 *R/dist_learn2.R
+22c6e19a4e11b2b905ac0179374286c7 *R/dist_learn3.R
 7b616e9c9869f8d25a28eff64129dfbb *R/fasthmmfit.R
 d082ad896bfa56ffcda102cfdeb10ba3 *R/fasthmmfit.cont.R
 cf5e0248ca83a805a4410edb88a5cd3b *R/fasthmmfit.cont3.R
@@ -30,7 +30,7 @@ cc59c8978c4fe9e5a6963d151654ca37 *R/hsmmsim2_exp.R
 4c0f826c3d908e357c5a036349214354 *R/hsmmviterbi.R
 268cc90ebb7dbbb4242cb3a505d624c9 *R/hsmmviterbi2.R
 30574124465c9bb59223ea13a3b7032e *R/hsmmviterbi_exp.R
-e1f9afda4f13f9a33e037b85e5d2baf2 *R/package.R
+b921bca2a2d88072593728f1758a0e44 *R/package.R
 b74ca81160d84f9bd8ca8f86bb418097 *data/CAT.RData
 03a761120f7dc287e4f533b322d6d170 *man/CAT.Rd
 fbc08b79728aebba414cd71ce59027f9 *man/convolution.Rd
@@ -65,7 +65,7 @@ f069574cae629a555bc2ef4d8c714f38 *man/hsmmsim2_exp.Rd
 6c206a51942efbb69cbdde463570e856 *man/hsmmviterbi.Rd
 2c903ff0ce90f7d8504356d57e135dcc *man/hsmmviterbi2.Rd
 18b5765e8ad8f100f390f12baebb3702 *man/hsmmviterbi_exp.Rd
-4164853cea7c506045cd0a1a59926e6b *man/package-ziphsmm.Rd
+fcbce619afb782fc14518b017ab3cb7c *man/package-ziphsmm.Rd
 139cee8690013969506ece929ffbd7cc *man/retrieve_cov_cont.Rd
 b484e4cd24db814f1a7621e3eeb574ae *man/retrieve_cov_cont3.Rd
 5809c2c52ca8c9086a7fb16ebc9807ae *man/retrieve_nocov_cont.Rd
@@ -75,6 +75,6 @@ cc1228674cd9e33fe275ba97f57842ec *man/zipnegloglik_cov_cont3.Rd
 7aef2a1ed91887d195a2e096bff47b52 *man/zipnegloglik_nocov_cont.Rd
 2a6f9e9e044a78154d3cfda5936d6f48 *src/Makevars
 8d46d69896a1f1d31ed76035a0e49d67 *src/Makevars.win
-cac611149ccd2f854d7dc33db01e8f8e *src/RcppExports.cpp
+e7540b993012fe8b80a098ab41e81b17 *src/RcppExports.cpp
 78b26ff4417b6ec7c6fdc67490bd1d62 *src/init.c
-8737579ea20b9616f28d8d0038aa8700 *src/rcpparma_hello_world.cpp
+5d84ecfa34962df8da44fa7bb25594f4 *src/rcpparma_hello_world.cpp

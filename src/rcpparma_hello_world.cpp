@@ -9207,3 +9207,112 @@ double gamma_conv(double shape1, double scale1, double shape2, double scale2,
 
 
 
+
+
+
+////////////////////////////////////////////
+///important utility function to compute transition probabilities for GAMMA SMP
+///each row of parmmat is the shape and scale parameters for the off diagonal transitions
+
+// [[Rcpp::export]]
+
+arma::mat smprcpp(arma::mat parmmat, int M, double time, int ngrid, double lower){
+    int i,j,k,m,s,t,nextindex;
+    arma::cube pp(M,M,ngrid);
+    pp.zeros();
+    for(i=0; i<M; i++)
+        pp(i,i,0) = 1;
+    
+    arma::vec grids(ngrid);
+    double h = (time - lower) / (ngrid - 1);
+    for(i=0; i<ngrid; i++)
+        grids(i) = lower + i * h;
+    
+    arma::cube densities(M,M,ngrid);
+    densities.zeros();
+    arma::cube cdfs(M,M,ngrid);
+    cdfs.zeros();
+    
+    
+    for(m=0; m<ngrid; m++){
+        nextindex = 0;
+        for(i=0; i<M; i++){
+            for(j=0; j<M; j++){
+                if(i!=j){
+                    densities(i,j,m) = R::dgamma(grids(m),parmmat(nextindex,0),parmmat(nextindex,1),FALSE);
+                    cdfs(i,j,m) = R::pgamma(grids(m),parmmat(nextindex,0),parmmat(nextindex,1),TRUE,FALSE);
+                    nextindex += 1;
+                    
+                }
+            }
+        }
+    }
+    
+
+    double tempsum;
+    double part1;
+    double part2;
+    double temprowsum;
+    
+    for(m=1; m<ngrid; m++){
+        for(i=0; i<M; i++){
+            for(j=0; j<M; j++){
+                if(i!=j){
+                    pp(i,j,m) = 0;
+                    
+                    for(k=0; k<M; k++){
+                        if(k!=i){
+                            
+                            tempsum = 0;
+                            for(s=0; s<m-1; s++){
+                                part1 = pp(k,j,m-s-2);
+                                
+                                temprowsum = 0;
+                                for(t=0; t<M; t++){
+                                    temprowsum += cdfs(i,t,s);
+                                }
+                                    
+                                part2 = densities(i,k,s)*cdfs(i,k,s)/temprowsum;
+                                    
+                                tempsum += part1 * part2;
+                                
+                            }
+                            
+                            pp(i,j,m) += h*tempsum;
+                            
+                            /*
+                            double result=0;
+                            for(int i=0; i<m-1; i++){
+                                result += vec1(m-i-2) * vec2(i);
+                            }
+                            */
+                            
+                        }
+                    }
+                    
+                }
+            }
+        }
+        
+        
+        for(i=0; i<M; i++){
+            temprowsum = 0;
+            for(t = 0; t<M; t++) temprowsum += pp(i,t,m);
+            if(temprowsum<1) pp(i,i,m) = 1 - temprowsum;
+            else pp(i,i,m) = 0;
+        }
+        
+    }
+    
+    return pp.slice(ngrid-1);
+    
+}
+
+
+
+
+
+
+
+
+

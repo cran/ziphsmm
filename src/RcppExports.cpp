@@ -1696,3 +1696,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// smprcpp
+arma::mat smprcpp(arma::mat parmmat, int M, double time, int ngrid, double lower);
+RcppExport SEXP ziphsmm_smprcpp(SEXP parmmatSEXP, SEXP MSEXP, SEXP timeSEXP, SEXP ngridSEXP, SEXP lowerSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type parmmat(parmmatSEXP);
+    Rcpp::traits::input_parameter< int >::type M(MSEXP);
+    Rcpp::traits::input_parameter< double >::type time(timeSEXP);
+    Rcpp::traits::input_parameter< int >::type ngrid(ngridSEXP);
+    Rcpp::traits::input_parameter< double >::type lower(lowerSEXP);
+    rcpp_result_gen = Rcpp::wrap(smprcpp(parmmat, M, time, ngrid, lower));
+    return rcpp_result_gen;
+END_RCPP
+}

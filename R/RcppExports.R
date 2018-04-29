@@ -495,3 +495,7 @@ convolution <- function(vec1, vec2) {
     .Call('ziphsmm_convolution', PACKAGE = 'ziphsmm', vec1, vec2)
 }
 
+smprcpp <- function(parmmat, M, time, ngrid, lower) {
+    .Call('ziphsmm_smprcpp', PACKAGE = 'ziphsmm', parmmat, M, time, ngrid, lower)
+}
+
