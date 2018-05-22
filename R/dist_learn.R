@@ -364,7 +364,7 @@ dist_learn <- function(ylist, timelist, prior_init, tpm_init,
        
       relchange <- newdiff / (1+olddiff)
       
-      resid <- abs(newdiff-olddiff) / (1+olddiff)  
+      resid <- abs(sqrt(newdiff)-sqrt(olddiff)) / (1+sqrt(olddiff))  
       resid_change <- c(resid_change, resid)
       #
       newnorm <- sum(z^2)
@@ -389,13 +389,14 @@ dist_learn <- function(ylist, timelist, prior_init, tpm_init,
       new_nllk_change <- abs(nllk-oldlik)/(1+oldlik)
       nllk_change <- c(nllk_change,new_nllk_change)
       
-      kkt_cur <- max(primal_diff, reldualchange, new_nllk_change)#newzdiff
+      kkt_cur <- max(primal_diff, new_nllk_change)#newzdiff
       if(iteration > maxit | 
          (iteration>2 & kkt_cur < tol )) {
         nllk <- oldlik; break}
-
+      
       if(print==TRUE & iteration>=2){
-        cat("iter:",iteration, "; threshold:", kkt_cur,"\n")
+        #cat("iter:",iteration, "; change:", kkt_cur,"\n")
+        cat("iter:",iteration,"; change",kkt_cur,"\n")
       }
       
       olddiff <- newdiff #
@@ -409,8 +410,10 @@ dist_learn <- function(ylist, timelist, prior_init, tpm_init,
       iteration <- iteration + 1
     }
     return(list(working_parm=parm,
-    #common_parm=z,
-                threshold = c(primal_change[-1],dual_change[-1],nllk_change[-1]),
+                change=list(primal=primal_change[-1],
+                            dual=dual_change[-1],
+                            resid=resid_change[-1],
+                            nllk_change=nllk_change[-1]),
                 nllk=nllk))
     
     ##################
@@ -565,7 +568,7 @@ dist_learn <- function(ylist, timelist, prior_init, tpm_init,
       primal_change <- c(primal_change, primal_diff)
       
       relchange <- newdiff / (1+olddiff)
-      resid <- abs(newdiff-olddiff) / (1+olddiff)  
+      resid <- abs(sqrt(newdiff)-sqrt(olddiff)) / (1+sqrt(olddiff))  
       resid_change <- c(resid_change, resid)
       
       
@@ -588,13 +591,14 @@ dist_learn <- function(ylist, timelist, prior_init, tpm_init,
       new_nllk_change <- abs(nllk-oldlik)/(1+oldlik)
       nllk_change <- c(nllk_change,new_nllk_change)
       
-      kkt_cur <- max(primal_diff, reldualchange, new_nllk_change) #newzdiff
+      kkt_cur <- max(primal_diff, new_nllk_change)#newzdiff
       if(iteration > maxit | 
          (iteration>2 & kkt_cur < tol )) {
         nllk <- oldlik; break}
       
       if(print==TRUE & iteration>=2){
-        cat("iter:",iteration, "; threshold:", kkt_cur,"\n")
+        #cat("iter:",iteration, "; change:", kkt_cur,"\n")
+        cat("iter:",iteration,"; change",kkt_cur,"\n")
       }
       
       olddiff <- newdiff #
@@ -607,8 +611,10 @@ dist_learn <- function(ylist, timelist, prior_init, tpm_init,
       iteration <- iteration + 1
     }
     return(list(working_parm=parm,
-    #common_parm=z,
-                threshold=pmax(primal_change[-1],dual_change[-1],nllk_change[-1]),
+                change=list(primal=primal_change[-1],
+                            dual=dual_change[-1],
+                            resid=resid_change[-1],
+                            nllk_change=nllk_change[-1]),
                 nllk=nllk))
   }
   

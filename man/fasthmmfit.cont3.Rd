@@ -47,6 +47,7 @@ zero-inflation only happens in State 1 with covariates in the state-dependent
 parameters and transition rates.
 }
 \examples{
+\dontrun{
 priorparm <- 0
 tpmparm <- c(-2,0.1,-0.1,-2,-0.2,0.2)
 zeroindex <- c(1,0)
@@ -64,6 +65,7 @@ state <- result$state
 fit2 <-  fasthmmfit.cont3(y=y,x=designx,M=2,initparm=workparm,
   timeindex=timeindex,
   hessian=FALSE, method="BFGS", control=list(trace=1))
+}
 }
 \references{
 Liu, Yu-Ying, et al. "Efficient learning of continuous-time hidden 

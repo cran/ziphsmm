@@ -86,9 +86,9 @@
 
 #' time <- proc.time()
 #' result <- dist_learn3(ylist, xlist, timelist, 2,workparm, 
-#'                      NULL, rho=0.1, priorclust,tpmclust,tpmslopeclust,
+#'                      NULL, rho=1, priorclust,tpmclust,tpmslopeclust,
 #'                      emitclust,zeroclust,slopeclust,group,ncores=1,
-#'                      maxit=10, tol=1e-4, method="CG",print=TRUE)
+#'                      maxit=20, tol=1e-4, method="CG",print=TRUE)
 #' proc.time() - time
 #' }
 #' @useDynLib ziphsmm
@@ -326,6 +326,194 @@ dist_learn3 <- function(ylist, xlist, timelist, M, initparm, yceil=NULL,
   #otherwise, just split into subgroups and refit
   if(is.null(commonindex)){
     print("Must have some common effects! Otherwise, simply split into clusters and refit.")
+  }else if (totalgroup == 1){
+    tempcluster <- vector(mode="list",length=totalgroup)
+    
+    #initial value
+    
+    tempcommon <- J[jcommonindex,commonindex2]%*%t(parm[,commonindex2])
+    z[commonindex] <- rowMeans(tempcommon) + colMeans(l[,commonindex])/rho
+    
+    olddiff <- sum((tempcommon-z[commonindex])^2)
+    oldnorm <- sum(z^2)
+    
+    olddualdiff <- 0
+    olddualparm <- l
+    olddualnorm <- 0
+    
+    zipnegloglik_cov_cont3 <- ziphsmm::zipnegloglik_cov_cont3
+    newf <- function(initparm,y,covariates,M,ntimes,timeindex,
+                     zi,rho,li){
+      cov <- cbind(1,covariates)
+      part1 <- zipnegloglik_cov_cont3(initparm,y,cov,M,ntimes,timeindex)
+      parmnew <- mapf(initparm,M,ncol(covariates)+1)
+      diff <- J%*%parmnew - zi
+      part2 <- t(li)%*%diff
+      part3 <- 0.5*rho*t(diff)%*%diff
+      return(part1+part2+part3)
+    }
+    
+    
+    newgradf <- function(initparm,y,covariates,M,ntimes,timeindex,
+                         zi,rho,li){
+      cov <- cbind(1,covariates)
+      part1 <- pracma::grad(zipnegloglik_cov_cont3,initparm,
+                            y=y,covariates=covariates,M=M,
+                            ntimes=ntimes,timeindex=timeindex)
+      part2 <- t(J)%*%li
+      parmnew <- mapf(initparm,M,ncol(covariates)+1)
+      part3 <- rho * (t(J) %*% ( J%*%parmnew - zi))
+      return(part1+part2+part3)
+    }
+    
+    #start iterations
+    iteration <- 1
+    nllk <- 0
+    dual_change <- NULL
+    nllk_change <- NULL
+    primal_change <- NULL
+    resid_change <- NULL
+    
+    #recursion
+    while(iteration<=maxit){
+      newrho <- rho
+      #newrho <- rho * iteration^(-1)
+      #distributed
+      oldlik <- nllk
+      if(ncores==1){
+        #time <- proc.time()
+        tempresult <- lapply(1:nsubj, function(i){
+          y <- ylist[[i]]
+          x <- xlist[[i]]
+          if(!is.null(yceil)) y <- ifelse(y>yceil, yceil, y)
+          timeindex <- timelist[[i]]
+          ntimes <- length(y)
+          
+          #get subject-specific z and l
+          for(kk in 1:totalgroup)
+            if(i%in%group[[kk]]){gi <- kk}else{next}
+          fullindex <-  c(clusterindex[[gi]],commonindex)  #for z and l
+          zi <- z[fullindex]
+          li <- l[i,fullindex]
+          initparm <- invmapf(parm[i,],M,ncolx)
+          
+          optim(par=initparm,fn=newf,gr=newgradf,
+                M=M,y=y,covariates=x,ntimes=ntimes,
+                timeindex=timeindex,
+                zi=zi,rho=newrho,li=li,
+                method=method,...)
+          #newf(initparm,y,x,M,ntimes,timeindex,zi,rho,li)
+          #newgradf(initparm,y,x,M,ntimes,timeindex,zi,rho,li)
+        })
+        # proc.time() - time
+      }else{
+        
+        cl <- parallel::makeCluster(ncores)
+        parallel::clusterExport(cl,c("M","ylist","xlist","timelist","yceil","l","parm",
+                                     "z","newrho","method","mapf","invmapf","group",
+                                     "newf","newgradf","grad_zipnegloglik_nocov_cont",
+                                     "zipnegloglik_nocov_cont","J","libpath",
+                                     "totalgroup","clusterindex","commonindex"),
+                                envir=environment())
+        #time <- proc.time()
+        tempresult <- parallel::parLapply(cl, 1:nsubj, function(i){
+          if(!is.null(libpath)) .libPaths(libpath)  #'~/R_p4/library'
+          library(ziphsmm)
+          y <- ylist[[i]]
+          x <- xlist[[i]]
+          if(!is.null(yceil)) y <- ifelse(y>yceil, yceil, y)
+          timeindex <- timelist[[i]]
+          ntimes <- length(y)
+          
+          
+          for(kk in 1:totalgroup)
+            if(i%in%group[[kk]]){gi <- kk}else{next}
+          fullindex <-  c(clusterindex[[gi]],commonindex)  #for z and l
+          zi <- z[fullindex]
+          li <- l[i,fullindex]
+          initparm <- invmapf(parm[i,],M,ncolx)
+          
+          optim(par=initparm,fn=newf,gr=newgradf,
+                M=M,y=y,covariates=x,ntimes=ntimes,
+                timeindex=timeindex, 
+                zi=zi,rho=newrho,li=li,
+                method=method)
+          
+        })
+        parallel::stopCluster(cl)
+        #proc.time()-time
+      }
+      
+      #####
+      nllk <- sum(sapply(1:nsubj,function(i)tempresult[[i]]$value))
+      parm <- t(sapply(1:nsubj,function(i) {
+        temppar <- tempresult[[i]]$par
+        
+        mapf(temppar,M,ncolx)
+      }))
+    
+      tempcommon <- J[jcommonindex,commonindex2]%*%t(parm[,commonindex2])
+      z[commonindex] <- rowMeans(tempcommon) + colMeans(l[,commonindex])/rho
+      newdiff <- sum((tempcommon-z[commonindex])^2)
+      newnorm <- sum(z^2)
+      
+      relchange <- newdiff / (1+olddiff)
+      #resid <- abs(newdiff-olddiff) / (1+olddiff)  
+      resid <- abs(sqrt(newdiff)-sqrt(olddiff)) / (1+sqrt(olddiff)) 
+      resid_change <- c(resid_change, resid)
+      
+      primal_diff <- abs(sqrt(newnorm) - sqrt(oldnorm))/(1+sqrt(oldnorm))
+      primal_change <- c(primal_change, primal_diff)
+      
+      #update l
+      for(i in 1:nsubj){
+        
+        fullindex <-  commonindex  #for z and l
+        l[i,fullindex] <- l[i,fullindex] + rho * 
+          (J%*%parm[i,]-z[fullindex])
+      }
+      
+      newdualparm <- l
+      newdualnorm <- sum(l^2)
+      newdualdiff <- sum((newdualparm - olddualparm)^2)
+      reldualchange <- sqrt(newdualdiff) / (sqrt(olddualnorm) +1)
+      dual_change <- c(dual_change, reldualchange)
+      
+      
+      if(iteration<=1) likbase <- nllk
+      new_nllk_change <- abs(nllk-oldlik)/(1+oldlik)
+      nllk_change <- c(nllk_change,new_nllk_change)
+      
+      kkt_cur <- max(primal_diff, new_nllk_change)#newzdiff
+      if(iteration > maxit | 
+         (iteration>2 & kkt_cur < tol )) {
+        nllk <- oldlik; break}
+      
+      if(print==TRUE & iteration>=2){
+        #cat("iter:",iteration, "; kkt_residual:", kkt_cur,"\n")
+        cat("iter:",iteration,"; change:",kkt_cur,"\n")
+      }
+      
+      
+      olddiff <- newdiff #
+      
+      olddualdiff <- newdualdiff
+      olddualparm <- newdualparm
+      olddualnorm <- newdualnorm
+      oldnorm <- newnorm
+      old_nllk_change <- new_nllk_change
+      iteration <- iteration + 1
+    }
+    #reorder back
+    workingparm <- t(sapply(1:nrow(parm),function(kkk) invmapf(parm[kkk,],M,ncolx)))
+    return(list(working_parm=workingparm,
+                change=list(primal=primal_change[-1],
+                            dual=dual_change[-1],
+                            resid=resid_change[-1],
+                            nllk_change=nllk_change[-1]),
+                nllk=nllk))
+    
+    #############
   }else if(totalgroup>1){ #some clustering some common
     #most common case
     
@@ -350,7 +538,6 @@ dist_learn3 <- function(ylist, xlist, timelist, M, initparm, yceil=NULL,
     olddualparm <- l
     olddualnorm <- 0
     
-    #new functions for penalized negloglik
     #new functions for penalized negloglik
     zipnegloglik_cov_cont3 <- ziphsmm::zipnegloglik_cov_cont3
     newf <- function(initparm,y,covariates,M,ntimes,timeindex,
@@ -477,7 +664,7 @@ dist_learn3 <- function(ylist, xlist, timelist, M, initparm, yceil=NULL,
       z[commonindex] <- rowMeans(tempcommon) + colMeans(l[,commonindex])/rho
       newdiff <- newdiff + sum((tempcommon-z[commonindex])^2)
       
-      resid <- abs(newdiff-olddiff) / (1+olddiff)  
+      resid <- abs(sqrt(newdiff)-sqrt(olddiff)) / (1+sqrt(olddiff))  
       resid_change <- c(resid_change, resid)
       
       newnorm <- sum(z^2)
@@ -504,13 +691,14 @@ dist_learn3 <- function(ylist, xlist, timelist, M, initparm, yceil=NULL,
       new_nllk_change <- abs(nllk-oldlik)/(1+oldlik)
       nllk_change <- c(nllk_change,new_nllk_change)
       
-      kkt_cur <- max(primal_diff, reldualchange, new_nllk_change)#newzdiff
+      kkt_cur <- max(primal_diff, new_nllk_change)#newzdiff
       if(iteration > maxit | 
          (iteration>2 & kkt_cur < tol )) {
         nllk <- oldlik; break}
       
       if(print==TRUE & iteration>=2){
-        cat("iter:",iteration, "; threshold:", kkt_cur,"\n")
+        #cat("iter:",iteration, "; change:", kkt_cur,"\n")
+        cat("iter:",iteration,"; change",kkt_cur,"\n")
       }
       
       olddiff <- newdiff #
@@ -525,8 +713,10 @@ dist_learn3 <- function(ylist, xlist, timelist, M, initparm, yceil=NULL,
     #reorder back
     workingparm <- t(sapply(1:nrow(parm),function(kkk) invmapf(parm[kkk,],M,ncolx)))
     return(list(working_parm=workingparm,
-    #common_parm=z,
-                threshold=pmax(primal_change[-1],dual_change[-1],nllk_change[-1]),
+                change=list(primal=primal_change[-1],
+                            dual=dual_change[-1],
+                            resid=resid_change[-1],
+                            nllk_change=nllk_change[-1]),
                 nllk=nllk))
   }
   

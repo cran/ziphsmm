@@ -120,9 +120,9 @@ group[[1]] <- 1:5; group[[2]] <- 6:10
 ###
 time <- proc.time()
 result <- dist_learn3(ylist, xlist, timelist, 2,workparm, 
-                     NULL, rho=0.1, priorclust,tpmclust,tpmslopeclust,
+                     NULL, rho=1, priorclust,tpmclust,tpmslopeclust,
                      emitclust,zeroclust,slopeclust,group,ncores=1,
-                     maxit=10, tol=1e-4, method="CG",print=TRUE)
+                     maxit=20, tol=1e-4, method="CG",print=TRUE)
 proc.time() - time
 }
 }

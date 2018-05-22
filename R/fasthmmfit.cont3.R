@@ -27,6 +27,7 @@
 #' markov models for disease progression." Advances in neural information 
 #' processing systems. 2015.
 #' @examples
+#' \dontrun{
 #' priorparm <- 0
 #' tpmparm <- c(-2,0.1,-0.1,-2,-0.2,0.2)
 #' zeroindex <- c(1,0)
@@ -44,6 +45,7 @@
 #' fit2 <-  fasthmmfit.cont3(y=y,x=designx,M=2,initparm=workparm,
 #'   timeindex=timeindex,
 #'   hessian=FALSE, method="BFGS", control=list(trace=1))
+#' }
 #' @useDynLib ziphsmm
 #' @importFrom Rcpp evalCpp
 #' @export
